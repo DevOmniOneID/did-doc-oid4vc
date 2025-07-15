@@ -120,22 +120,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집�
 
 ##### ▶️ 시퀀스 다이어그램 (OID4VP 기준)
 
-```puml
-@startuml
-actor User
-participant "Wallet (SIOP)" as Wallet
-participant Verifier
-participant "DID Resolver" as DID
-
-User -> Wallet : Presentation 요청 수락
-Wallet -> Wallet : SIOP ID Token 생성 (JWT + DID)
-Wallet -> Verifier : ID Token + VP 전달
-Verifier -> DID : DID 문서 요청 (resolve)
-DID --> Verifier : Public Key 반환
-Verifier -> Verifier : JWT 서명 검증
-Verifier -> Verifier : Claim 검증 (aud, exp, sub 등)
-@enduml
-```
+![SIOP 시퀀스](./siop.svg)
 
 ##### 🧠 설명 요약:
 
