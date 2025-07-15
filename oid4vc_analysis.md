@@ -1,7 +1,10 @@
 # OID4VC 분석서
 
 ## 1. 범위 및 목표
-
+OID4VC 도입을 통해 EUDIW(EU Digital Identity Wallet) 등 다양한 디지털 월렛과의 연동을 목표로 상호운용성을 개선하는 데 중점을 둡니다. 또한 OpenID와 OAuth 2.0 등 국제적으로 검증된 개방형 표준 프로토콜을 기반으로 전체 시스템을 구조화합니다. 이와 함께 기존 Open DID의 레거시 요소를 정비하여 기술부채를 해소하고, 기존 기술요소를 고도화하고 Open DID의 원칙을 더욱 준수하고자 합니다.
+- (상호운용성 개선) : EUDIW(EU Digital Identity Wallet) 등과의 호환성 확보
+- (개방형 표준 준수) : OpenID 및 OAuth 2.0 등 개방형 표준 프로토콜 기반 규격화
+- (기술부채 해결) : Server Token 등 기존 Legacy 고도화
 
 ## 2. 요구사항 도출
 ### 2.1 기능 요구사항
