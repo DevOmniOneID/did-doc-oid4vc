@@ -37,25 +37,31 @@ Open DID 플랫폼에 OID4VC 도입을 통해 EUDIW(EU Digital Identity Wallet) 
 ### 4.2 OID4VCI
 <br>
 
-#### 4.2.1 ODI4VCI에 대한 전체 흐름
-OID4VCI는 OAuth 2.0의 인가 프레임워크를 확장하여, Wallet(OAuth 2.0 Client)이 사용자(Resource Owner)를 대신하여 발급자(Resource Server)로부터 VC(Protected Resource)를 안전하고 상호운용 가능한 방식으로 발급받는 절차를 정의합니다.
+### 4.2.1 ODI4VCI에 대한 전체 흐름
+OID4VCI는 OAuth 2.0의 인가 프레임워크를 확장하여, Wallet(OAuth 2.0 Client)이 사용자(Resource Owner)를 대신하여 발급자(Resource Server)로부터 VC(Protected Resource)를 안전하고 상호운용 가능한 방식으로 발급받는 절차를 정의합니다. (RFC 6749 - The OAuth 2.0 Authorization Framework 참조)
 
-#### **단계 1: Credential Offer (자격증명 제공)**
+---
 
-프로토콜의 시작점으로, 발급자가 Wallet에게 발급 가능한 VC와 발급 절차를 시작하는 데 필요한 정보를 전달하는 과정입니다. 이 정보는 `Credential Offer` 객체에 담겨 있으며, URI를 통해 값으로 전달되거나(pass-by-value) 해당 URI에서 직접 GET 요청으로 가져올 수 있습니다(pass-by-reference).
+**단계 1: Credential Offer (자격증명 제공)**
+
+- 프로토콜의 시작점으로, 발급자가 Wallet에게 발급 가능한 VC와 발급 절차를 시작하는 데 필요한 정보를 전달하는 과정입니다. 이 정보는 `Credential Offer` 객체에 담겨 있으며, URI를 통해 값으로 전달되거나(pass-by-value) 해당 URI에서 직접 GET 요청으로 가져올 수 있습니다(pass-by-reference).
 
 *   **`credential_offer` 객체 주요 파라미터:**
     *   `credential_issuer` (필수): 발급자의 고유 식별자 URL. 이 URL은 발급자 메타데이터를 찾는 데 사용됩니다.
     *   `credentials` (필수): 발급자가 제공하는 VC의 종류를 명시하는 배열. 각 항목은 `format` (예: `jwt_vc_json`), `types` 등 VC의 구체적인 속성을 포함합니다.
     *   `grants` (조건부 필수): VC 발급을 위해 지원되는 OAuth 2.0 인가 그랜트(Grant) 정보를 담는 객체. `authorization_code` 또는 `urn:ietf:params:oauth:grant-type:pre-authorized_code` 중 하나 이상이 반드시 포함되어야 합니다.
 
-#### **단계 2: Issuer Metadata 조회 (발급자 메타데이터 조회)**
+---
 
-Wallet은 `Credential Offer`에서 얻은 `credential_issuer` URL을 사용하여, `/.well-known/openid-credential-issuer` 경로로 GET 요청을 보내 발급자의 메타데이터를 획득합니다. 이 메타데이터는 VC 발급에 필요한 모든 엔드포인트 URL, 지원 기능, VC 상세 정보 등을 담고 있어 동적인 설정이 가능하게 합니다. (상세 내용은 `4.2.3` 참조)
+**단계 2: Issuer Metadata 조회 (발급자 메타데이터 조회)**
 
-#### **단계 3: Authorization Grant & Token Acquisition (인가 및 토큰 획득)**
+- Wallet은 `Credential Offer`에서 얻은 `credential_issuer` URL을 사용하여, `/.well-known/openid-credential-issuer` 경로로 GET 요청을 보내 발급자의 메타데이터를 획득합니다. 이 메타데이터는 VC 발급에 필요한 모든 엔드포인트 URL, 지원 기능, VC 상세 정보 등을 담고 있어 동적인 설정이 가능하게 합니다. (상세 내용은 `4.2.3` 참조)
 
-Wallet은 발급자 메타데이터에 명시된 `grants` 정보를 바탕으로 VC 발급에 필요한 접근 토큰(Access Token)을 획득합니다.
+---
+
+**단계 3: Authorization Grant & Token Acquisition (인가 및 토큰 획득)**
+
+- Wallet은 발급자 메타데이터에 명시된 `grants` 정보를 바탕으로 VC 발급에 필요한 접근 토큰(Access Token)을 획득합니다.
 
 1.  **Authorization Code Grant (사용자 승인 필요):**
     *   **인가 요청:** Wallet은 발급받을 VC의 `id`나 `types`를 `scope` 파라미터에 포함하여, 메타데이터에 명시된 `authorization_endpoint`로 사용자를 리디렉션합니다.
@@ -67,9 +73,11 @@ Wallet은 발급자 메타데이터에 명시된 `grants` 정보를 바탕으로
     *   **토큰 요청:** Wallet은 `pre-authorized_code`를 `token_endpoint`에 직접 제출하여 `Access Token`과 `c_nonce`를 획득합니다. 이 흐름에서는 사용자 리디렉션이 발생하지 않습니다.
     *   `tx_code` (Transaction Code): 선택적으로 사용자 확인을 위해 간단한 추가 인증(예: PIN)을 요구할 수 있으며, 이 정보는 `Credential Offer`의 `tx_code` 필드에 명시됩니다.
 
-#### **단계 4: Credential Request (자격증명 요청)**
+---
 
-Wallet은 획득한 `Access Token`을 사용하여 발급자의 `credential_endpoint`에 VC 발급을 공식적으로 요청합니다. 이 요청은 `POST` 메서드를 사용하며, `Authorization: Bearer <Access Token>` 헤더를 포함해야 합니다.
+**단계 4: Credential Request (자격증명 요청)**
+
+- Wallet은 획득한 `Access Token`을 사용하여 발급자의 `credential_endpoint`에 VC 발급을 공식적으로 요청합니다. 이 요청은 `POST` 메서드를 사용하며, `Authorization: Bearer <Access Token>` 헤더를 포함해야 합니다.
 
 *   **요청 본문(Request Body) 주요 파라미터:**
     *   `format` (필수): 발급받을 VC의 포맷 (예: `jwt_vc_json`). 메타데이터의 `credentials_supported`에 명시된 값이어야 합니다.
@@ -78,9 +86,11 @@ Wallet은 획득한 `Access Token`을 사용하여 발급자의 `credential_endp
         *   **`proof_type`**: `jwt` 또는 `ldp_vp` 등 증명 유형.
         *   **`jwt`**: Holder의 개인키로 서명된 JWT. 이 JWT의 Payload에는 `iss` (Holder의 DID), `aud` (발급자 `credential_issuer` URL), 그리고 토큰 응답에서 받은 `c_nonce`가 포함되어야 합니다. 발급자는 이 서명과 `c_nonce`를 검증하여 요청의 유효성을 확인합니다.
 
-#### **단계 5: Credential Response (자격증명 응답)**
+---
 
-발급자는 요청을 모두 검증한 후, VC를 생성하여 Wallet에 반환합니다.
+**단계 5: Credential Response (자격증명 응답)**
+
+- 발급자는 요청을 모두 검증한 후, VC를 생성하여 Wallet에 반환합니다.
 
 *   **성공 응답 (Success):**
     *   `format` (필수): 발급된 VC의 포맷.
@@ -95,10 +105,15 @@ Wallet은 획득한 `Access Token`을 사용하여 발급자의 `credential_endp
     *   `invalid_token`, `unsupported_credential_type` 등 OAuth 2.0 표준에 정의된 오류 코드를 사용하여 실패 이유를 명확히 전달합니다.
 
 ---
+- 
 <br>
+
 ### 4.2.2 OID4VCI Endpoint
+
 <br>
+
 ### 4.2.3 OID4VCI Issue Metadata
+
 <br>
 
 ### 4.3 OID4VP // 아래 세부 목차는 자유롭게 바꾸셔도 됩니다.
