@@ -192,6 +192,12 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     GET /authorize?response_type=code&client_id=s6BhdRkqt3&redirect_uri=https%3A%2F%2Fwallet.example.org%2Fcb&authorization_details=%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_configuration_id%22%3A%22UniversityDegreeCredential%22%7D%5D HTTP/1.1
     Host: auth-server.example.com
     ```
+-   **요청 (Request) - `scope` 사용 예시:**
+    ```http
+    GET /authorize?response_type=code&client_id=...&scope=UniversityDegreeCredential HTTP/1.1
+    Host: auth-server.example.com
+    ```
+
 -   **응답 (Response):**
     -   사용자 동의 시, HTTP `302 Found`와 함께 `redirect_uri`로 리다이렉션되며, 쿼리 파라미터로 `code` (Authorization Code)를 전달함
     ```http
