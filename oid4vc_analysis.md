@@ -188,7 +188,7 @@ OID4VP는 사용자가 VC를 제시할 때, Verifier가 **“누가 제시했는
 
 ### 4.4.4 ID Token 발급 구조 (JWT + DID)
 
-SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집니다:
+SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진다:
 
 #### JWT 구성:
 
@@ -204,8 +204,8 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집�
 ##### Payload (예시)
 ```json
 {
-  "iss": "did:example:123",
-  "sub": "did:example:123",
+  "iss": "did:wallet:123",
+  "sub": "did:wallet:123",
   "aud": "https://verifier.example.org",
   "iat": 1689456000,
   "exp": 1689463200,
@@ -226,7 +226,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집�
 
 ### 4.4.5 SIOP 기반 Wallet의 검증 흐름
 
-지갑이 인증 주체로 동작할 때, Verifier 또는 Credential Issuer는 지갑이 제시하는 **ID Token의 진위**와 **서명자 식별자(DID)**를 검증합니다.
+월렛이 인증 주체로 동작할 때, Verifier 또는 Credential Issuer는 월렛이 제시하는 **ID Token의 진위**와 **서명자 식별자(DID)** 를 검증한다.
 
 #### 시퀀스 다이어그램 (OID4VP 기준)
 
@@ -250,7 +250,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집�
 | **ID Token 구조** | JWT 형식, DID 기반 발급자, 서명 포함 |
 | **검증 흐름** | DID → 공개키 → JWT 서명 및 Claim 검증 |
 
-> **SIOPv2는 Self-Sovereign Identity 실현을 위한 핵심 구성요소로, 신뢰 가능한 자기주권형 인증을 구현합니다.**
+> **SIOPv2는 Self-Sovereign Identity 실현을 위한 핵심 구성요소로, 신뢰 가능한 자기주권형 인증을 구현함.**
 
 
 
