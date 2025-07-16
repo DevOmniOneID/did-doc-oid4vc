@@ -31,8 +31,8 @@ Open DID 플랫폼에 OID4VC 도입을 통해 EUDIW(EU Digital Identity Wallet) 
 ### 4.1.1 JWT / JWS / JWE 구조
 ### 4.1.2 JWK Key 전달 및 검증
 ### 4.1.3 OAuth 2.0 및 TLS 요구사항
-### 4.1.4 Credential Metadata 구조 (`credential_configurations_supported`)
 
+<br>
 
 ### 4.2 OID4VCI
 <br>
