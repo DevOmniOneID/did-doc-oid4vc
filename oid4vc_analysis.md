@@ -38,7 +38,7 @@ Open DID 플랫폼에 OID4VC 도입을 통해 EUDIW(EU Digital Identity Wallet) 
 <br>
 
 ### 4.2.1 ODI4VCI 개요
-#### 4.2.1.1 OAuth 2.0 적용 범위
+### 4.2.1.1 OAuth 2.0 적용 범위
 
 OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링합니다.
 - **Wallet**: OAuth 2.0의 `Client` 역할을 수행합니다.
@@ -46,7 +46,7 @@ OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링합니다.
 - **Credential Issuer**: VC를 발급하는 주체로, `Resource Server`의 역할을 합니다.
 - **Authorization Server**: 사용자의 인증 및 동의를 처리하고 접근 토큰을 발급하는 `Authorization Server`입니다. Credential Issuer가 이 역할을 겸할 수 있습니다.
 
-#### 4.2.1.2 Authorization Code Flow vs. Pre-Authorized Code Flow
+### 4.2.1.2 Authorization Code Flow vs. Pre-Authorized Code Flow
 
 OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리오에 대응합니다.
 
@@ -236,7 +236,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
 
 ### 4.2.2.5 Nonce Endpoint
 
--   **개념:** (선택 사항) Credential Request의 `proofs` 파라미터에 사용될 신선한 `c_nonce` 값을 얻기 위한 Endpoint입니다. 이는 Replay 공격을 방지하는 데 중요한 역할을 합니다.
+-   **개념:** (선택 사항) Credential Request의 `proofs` 파라미터에 사용될 `c_nonce` 값을 얻기 위한 Endpoint입니다. 이는 Replay 공격을 방지하는 데 중요한 역할을 합니다.
 -   **요청 (Request):**
     ```http
     POST /nonce HTTP/1.1
@@ -332,9 +332,82 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
 
 <br>
 
-### 4.2.3 OID4VCI Issue Metadata
+### 4.2.3 OID4VCI Issuer Metadata
 
+발급자 메타데이터는 OID4VCI의 동적 상호운용성을 가능하게 하는 핵심 요소임. Wallet은 이 정보를 통해 발급자의 정책과 기술 사양을 파악하고 그에 맞춰 동작함.
+
+- **조회 경로**: `https://{credential_issuer}/.well-known/openid-credential-issuer`
+- **주요 필드 상세 설명**
+    - `credential_issuer` (필수): 메타데이터를 제공하는 발급자의 URL.
+    - `authorization_servers` (선택): 발급자가 신뢰하는 AS의 식별자 배열. 생략 시 발급자가 AS 역할을 겸함.
+    - `credential_endpoint` (필수): VC 발급 요청 엔드포인트.
+    - `deferred_credential_endpoint` (선택): 지연된 VC 조회 엔드포인트.
+    - `nonce_endpoint` (선택): 발급시 필요한 c_nonce를 획득하는 엔드포인트.
+    - `notification_endpoint` (선택): 발급상태를 알리는 엔드포인트.
+    - `credentials_supported` (필수): 발급 가능한 VC 목록과 각 VC의 상세 사양을 담은 객체.
+        - **객체 키**: `credential_configuration_ids`와 매핑되는 고유 식별자.
+        - **객체 값**:
+            - `format`: `jwt_vc_json`, `ldp_vc`, `mso_mdoc` 등 VC 포맷.
+            - `cryptographic_binding_methods_supported`: `jwk`, `did` 등 Holder 키 바인딩 방식.
+            - `proof_types_supported`: `jwt`, `ldp_vp` 등 지원하는 증명(proof) 타입.
+            - `display`: VC의 이름, 로고, 색상 등 UI 정보.
+            - `credential_definition`: VC의 `types` (`VerifiableCredential`, `UniversityDegreeCredential` 등)과 `claims`에 대한 상세 설명.
+    - `display` (선택): 발급 기관의 이름, 로고 등 UI에 표시될 정보.
+
+- **예시**
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "credential_issuer": "https://issuer.example.com",
+
+  "credential_endpoint": "https://issuer.example.com/credential",
+  "deferred_credential_endpoint": "https://issuer.example.com/deferred",
+  "nonce_endpoint": "https://issuer.example.com/nonce",
+  "notification_endpoint": "https://issuer.example.com/notify",
+
+  "credential_response_encryption_alg_values_supported": ["ECDH-ES"],
+  "credential_response_encryption_enc_values_supported": ["A256GCM"],
+
+  "token_endpoint": "https://issuer.example.com/token",
+  "authorization_server": "https://auth.example.com",  // 인가 서버 분리 시
+
+  "credential_configurations_supported": {
+    "UniversityDegreeCredential": {
+      "format": "vc+sd-jwt",
+      "scope": "UniversityDegreeCredential",
+      "cryptographic_binding_methods_supported": ["did"],
+      "credential_definition": {
+        "type": ["UniversityDegreeCredential"],
+        "trusted_issuers": ["did:example:issuer123"]
+      }
+    },
+    "mDL": {
+      "format": "iso/18013-5",
+      "scope": "org.iso.18013.5.1.mDL",
+      "cryptographic_binding_methods_supported": ["jwk"],
+      "credential_definition": {
+        "doctype": "org.iso.18013.5.1.mDL"
+      }
+    }
+  }
+}
+```
+
+---
+
+### 4.2.4 Security Considerations
+
+OID4VCI는 안전한 VC 발급을 위해 여러 보안 메커니즘을 정의함
+
+- **소유자 증명 (Holder Binding)**: `Credential Request`의 `proof` 파라미터는 VC가 정당한 소유자에게 발급되도록 보장함. Holder의 개인키로 서명된 증명을 통해 발급자는 요청자가 VC에 포함될 공개키의 소유자임을 확인함.
+- **재전송 공격 방지**: `c_nonce`는 토큰과 VC 요청을 한 번의 트랜잭션으로 묶어 재전송 공격을 방지함. 토큰 발급 시 받은 `c_nonce`는 VC 요청 `proof`에 포함되어야 하며, 한 번 사용된 `c_nonce`는 다시 사용할 수 없음.
+- **피싱 공격 방지**: Pre-authorized code flow에서 `tx_code`(PIN 등)를 사용하여 QR 코드 탈취(shoulder surfing) 후 다른 기기에서 토큰을 발급받으려는 공격을 막을 수 있음.
+- **전송 계층 보안**: 모든 통신은 TLS(Transport Layer Security)로 암호화되어야 함.
+- **Credential Offer 보안**: `Credential Offer` 자체는 서명되지 않은 정보이므로, Wallet은 Offer의 `credential_issuer` 정보를 신뢰하지 않고, 해당 URL의 메타데이터 엔드포인트(`.well-known`)를 직접 조회하여 발급자를 검증해야 함.
 <br>
+
 
 ### 4.3 OID4VP // 아래 세부 목차는 자유롭게 바꾸셔도 됩니다.
 ### 4.3.1 Verifier Request Object 처리
