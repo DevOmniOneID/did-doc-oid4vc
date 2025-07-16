@@ -148,6 +148,10 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 </table>
 
 ## 3. 목표 시스템 구성
+목표 시스템의 아키텍처를 시각화하기 위한 여러 다이어그램 작성 방법론 중 목표 시스템 구성을 표현하기에 가장 적합한 다이어그램으로서 System Context Diagram을 채택하였다.
+특히 System Context Diagram을 통해 신규 도입되는 OID4VC 시스템의 역할을 한 누네 확인할 수 있다. 추가적으로 사용자의 역할과 외부 시스템과의 관계를 용이하게 파악할 수 있다.
+
+### 3.1 VC 발급
 
 
 ## 4. OID4VC 분석 결과
