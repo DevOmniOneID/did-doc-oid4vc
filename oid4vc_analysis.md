@@ -153,16 +153,16 @@ OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리�
 - OpenID Connect(OIDC)의 흐름을 그대로 따르므로 기존 생태계와의 호환성 확보
 
 **핵심 포인트:**
-- 사용자가 직접 서명한 JWT ID Token을 발급
-- DID 기반으로 사용자를 식별 및 검증
+- 사용자가 직접 서명한 JWT ID Token(DIDAuth와 유사)을 발급
+- DID 기반으로 사용자를 식별 및 검증, OIDC 확장 구조
 - VC 발급 요청(OID4VCI) 또는 VC 제시(OID4VP) 시에 인증 주체로 사용됨
 
 ---
 
-### 4.4.2 OID4VCI에서의 Client Authentication 방식으로 사용
+### 4.4.2 **OID4VCI** 에서의 Client Authentication 방식으로 사용
 
 OID4VCI에서 사용자는 Credential Issuer에게 VC 발급을 요청한다.  
-이때 Issuer는 요청자의 신원을 확인해야 하며, **Client Authentication** 방식으로 **SIOP 기반 ID Token**이 활용된다.
+이때 Issuer는 요청자의 신원을 확인해야 하며, **Client Authentication** 방식으로 **SIOP 기반 ID Token** (사용자의 식별자 기능)이 활용된다. 
 
 ##### 흐름 요약:
 1. 사용자가 지갑을 통해 VC 발급 요청
@@ -173,16 +173,20 @@ OID4VCI에서 사용자는 Credential Issuer에게 VC 발급을 요청한다.
 
 ---
 
-### 4.4.3 OID4VP에서의 Subject 인증 방식으로 사용
+### 4.4.3 **OID4VP** 에서의 Subject 인증 방식으로 사용
 
-OID4VP는 사용자가 VC를 제시할 때, Verifier가 **“누가 제시했는가”**를 검증해야 한다.
+OID4VP는 사용자가 VC를 제시할 때, Verifier가 **누가 제시했는가** 를 검증해야 한다.
 이때 SIOPv2는 **VC의 제시 주체(Subject)** 인증 수단으로 사용된다.
 
-#### 인증 흐름:
+#### 간략 인증 흐름:
 1. Verifier가 Presentation Request 전송
 2. Wallet이 **SIOPv2 방식의 ID Token** 생성
 3. VP와 함께 Verifier에게 전달
 4. Verifier는 ID Token의 서명을 확인하고, DID를 통해 소유자 식별
+
+
+#### 서비스 이용시 인증 흐름:
+![SIOP 시퀀스](./siop_seq.svg)
 
 ---
 
@@ -197,7 +201,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 {
   "alg": "ES256K",
   "typ": "JWT",
-  "kid": "did:example:123#key-1"
+  "kid": "did:wallet:123#key-1"
 }
 ```
 
@@ -209,17 +213,18 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
   "aud": "https://verifier.example.org",
   "iat": 1689456000,
   "exp": 1689463200,
-  "sub_jwk": {
+  "sub_jwk": {   // 공개키 정보
     "kty": "EC",
     "crv": "secp256k1",
     "x": "...",
     "y": "..."
-  }
+  },
+  "vp_token": {VC, VP 포함 가능}  // 옵션
 }
 ```
 
 ##### Signature
-- DID Document에 등록된 키로 서명
+- DID Document에 등록된 wallet의 개인키로 서명
 - 공개키는 DID를 통해 검증 가능
 
 ---
