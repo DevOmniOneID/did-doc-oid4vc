@@ -20,134 +20,53 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 
 ## 2. 요구사항 도출
 ### 2.1 기능 요구사항
+| **구분**     | 항목                                       | 설명                                                                 |
+|--------------|--------------------------------------------|----------------------------------------------------------------------|
+| **인가/인증** | OAuth 2.0 지원                              | OAuth 2.0 표준 프로토콜 지원, 클라이언트 등록 및 PKCE 지원 등       |
+|              | Authorization Server 구현                   | OAuth 2.0 표준 엔드포인트 제공 서버 구현, Access Token 발급 및 검증 기능, Refresh Token 구현 등 |
+|              | TLS 적용                                    | 인증 및 데이터 전송 전 구간에 HTTPS 적용(TLS 1.2 이상 필수) 등     |
+|              | App Scheme 지원                             | Native App 연동을 위한 Custom URI 및 App Scheme 지원               |
+|              | SIOPv2 지원                                 | SIOPv2 표준에 따라 사용자 DID 기반 ID Token 발급 등                |
+|              | OIDC Provider 구현                          | 월렛에서의 ID Token 발급을 위한 OIDC Provider 구현 등              |
+| **VC 발급**   | Issuer Endpoint 구현                        | OID4VCI 표준 Endpoint 구현 등                                       |
+|              | Issuer Metadata 제공                        | Profile 정보에 해당하는 Metadata 제공 등                           |
+|              | OID4VCI Pre-authorized code 프로토콜 적용   | Pre-authorized code 프로토콜 기반 VC 발급 플로우 지원 등           |
+|              | OID4VCI Authorization code 프로토콜 적용    | Authorization code 프로토콜 기반 VC 발급 플로우 지원 등            |
+| **VP 제출**   | Verifier Endpoint 구현                      | OID4VP 표준 Endpoint 구현 등                                       |
+|              | DCQL 지원                                   | Profile 정보 제공 등을 위한 Digital Credentials Query Language 지원 등 |
+|              | OID4VP Cross Device 프로토콜 적용          | Cross Device 프로토콜 기반 VP 제출 플로우 지원 등                  |
+|              | OID4VP Same Device 프로토콜 적용           | Same Device 프로토콜 기반 VP 제출 플로우 지원 등                   |
+| **데이터 모델**| JWT 적용                                   | VC, VP, ID Token 등 모든 핵심 메시지를 JWT 형식으로 처리 등        |
+|              | JWK / JWE 지원                              | 공개키 교환을 위한 JWK 지원, ECDH 기반 Payload 암호화를 위한 JWE 지원 등 |
 
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>항목</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="6">인가/인증</td>
-      <td>OAuth 2.0 지원</td>
-      <td>OAuth 2.0 표준 프로토콜 지원, 클라이언트 등록 및 PKCE 지원 등</td>
-    </tr>
-    <tr>
-      <td>Authorization Server 구현</td>
-      <td>OAuth 2.0 표준 엔드포인트 제공 서버 구현, Access Token 발급 및 검증 기능, Refresh Token 구현 등</td>
-    </tr>
-    <tr>
-      <td>TLS 적용</td>
-      <td>인증 및 데이터 전송 전 구간에 HTTPS 적용(TLS 1.2 이상 필수) 등</td>
-    </tr>
-    <tr>
-      <td>App Scheme 지원</td>
-      <td>Native App 연동을 위한 Custom URI 및 App Scheme 지원</td>
-    </tr>
-    <tr>
-      <td>SIOPv2 지원</td>
-      <td>SIOPv2 표준에 따라 사용자 DID 기반 ID Token 발급 등</td>
-    </tr>
-    <tr>
-      <td>OIDC Provider 구현</td>
-      <td>월렛에서의 ID Token 발급을 위한 OIDC Provider 구현 등</td>
-    </tr>
-    <tr>
-      <td rowspan="4">VC 발급</td>
-      <td>Issuer Endpoint 구현</td>
-      <td>OID4VCI 표준 Endpoint 구현 등</td>
-    </tr>
-    <tr>
-      <td>Issuer Metadata 제공</td>
-      <td>Profile 정보에 해당하는 Metadata 제공 등</td>
-    </tr>
-    <tr>
-      <td>OID4VCI Pre-authorized code 프로토콜 적용</td>
-      <td>Pre-authorized code 프로토콜 기반 VC 발급 플로우 지원 등</td>
-    </tr>
-    <tr>
-      <td>OID4VCI Authorization code 프로토콜 적용</td>
-      <td>Authorization code 프로토콜 기반 VC 발급 플로우 지원 등</td>
-    </tr>
-    <tr>
-      <td rowspan="4">VP 제출</td>
-      <td>Verifier Endpoint 구현</td>
-      <td>OID4VP 표준 Endpoint 구현 등</td>
-    </tr>
-    <tr>
-      <td>DCQL 지원</td>
-      <td>Profile 정보 제공 등을 위한 Digital Credentials Query Language 지원 등</td>
-    </tr>
-    <tr>
-      <td>OID4VP Cross Device 프로토콜 적용</td>
-      <td>Cross Device 프로토콜 기반 VP 제출 플로우 지원 등</td>
-    </tr>
-    <tr>
-      <td>OID4VP Same Device 프로토콜 적용</td>
-      <td>Same Device 프로토콜 기반 VP 제출 플로우 지원 등</td>
-    </tr>
-    <tr>
-      <td rowspan="2">데이터 모델</td>
-      <td>JWT 적용</td>
-      <td>VC, VP, ID Token 등 모든 핵심 메시지를 JWT 형식으로 처리 등</td>
-    </tr>
-    <tr>
-      <td>JWK / JWE 지원</td>
-      <td>공개키 교환을 위한 JWK 지원, ECDH 기반 Payload 암호화를 위한 JWE 지원 등</td>
-    </tr>
-  </tbody>
-</table>
 
 ### 2.2 비기능 요구사항
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>항목</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="2">보안성</td>
-      <td>세션 계층 암호화</td>
-      <td>OAuth 2.0 표준에 따라 모든 https 통신은 TLS 1.2 이상을 적용하여 세션 계층에서 암호화를 보장해야 함</td>
-    </tr>
-    <tr>
-      <td>토큰 관리</td>
-      <td>Access Token, Refresh Token의 저장, 검증, 만료 정책 및 재사용 방지 등 보안 정책을 관리해야 함</td>
-    </tr>
-    <tr>
-      <td rowspan="2">상호운용성</td>
-      <td>OID4VC 표준 준수</td>
-      <td>OID4VCI, OID4VP, SIOPv2 등 OpenID 관련 스펙을 준수해야 하며 향후 표준 변경에도 유연하게 대응 가능해야 함</td>
-    </tr>
-    <tr>
-      <td>다양한 Wallet과의 호환성</td>
-      <td>EU의 EUDI Wallet 등 다양한 DID Wallet과 상호운용 가능한 구조여야 함</td>
-    </tr>
-    <tr>
-      <td>확장성</td>
-      <td>mdocs 스펙 확장 가능성</td>
-      <td>ISO/IEC 18013-5 등 mDL/mDocs 표준과의 연계 확장이 가능해야 함</td>
-    </tr>
-    <tr>
-      <td>신뢰성</td>
-      <td>책임 추적성</td>
-      <td>Access Token 등에 대한 로깅을 통해 식별자 기반 추적이 가능해야 함</td>
-    </tr>
-    <tr>
-      <td>사용성</td>
-      <td>사용자 지향 인터페이스</td>
-      <td>사용자 지향 인터페이스 제공으로 신규 스펙 적용에 따른 UX 저해가 없어야 함</td>
-    </tr>
-  </tbody>
-</table>
+| **구분**       | 항목                             | 설명                                                                                 |
+|----------------|----------------------------------|--------------------------------------------------------------------------------------|
+| **보안성**     | 세션 계층 암호화                 | OAuth 2.0 표준에 따라 모든 https 통신은 TLS 1.2 이상을 적용하여 세션 계층에서 암호화를 보장해야 함 |
+|                | 토큰 관리                        | Access Token, Refresh Token의 저장, 검증, 만료 정책 및 재사용 방지 등 보안 정책을 관리해야 함 |
+| **상호운용성** | OID4VC 표준 준수                 | OID4VCI, OID4VP, SIOPv2 등 OpenID 관련 스펙을 준수해야 하며 향후 표준 변경에도 유연하게 대응 가능해야 함 |
+|                | 다양한 Wallet과의 호환성        | EU의 EUDI Wallet 등 다양한 DID Wallet과 상호운용 가능한 구조여야 함                 |
+| **확장성**     | mdocs 스펙 확장 가능성           | ISO/IEC 18013-5 등 mDL/mDocs 표준과의 연계 확장이 가능해야 함                      |
+| **신뢰성**     | 책임 추적성                      | Access Token 등에 대한 로깅을 통해 식별자 기반 추적이 가능해야 함                  |
+| **사용성**     | 사용자 지향 인터페이스           | 사용자 지향 인터페이스 제공으로 신규 스펙 적용에 따른 UX 저해가 없어야 함          |
 
-## 3. 목표 시스템 구성
+## 3. 목표 시스템 구성 (System Context Diagram)
+목표 시스템의 구성을 시각화하기 위한 여러 다이어그램 작성 방법론 중 가장 적합한 다이어그램으로서 System Context Diagram을 채택하였다.
+해당 다이어그램은 시스템의 전체적인 맥락을 보여주며, 특히 신규 채택되는 OID4VC 시스템의 역할을 한 눈에 확인할 수 있다. 추가적으로 사용자의 역할과 외부 시스템과의 관계 또한 용이하게 파악할 수 있다.
+
+### 3.1 VC 발급
+![SYSTEM_CONTEXT_DIAGRAM_OID4VCI](./system_context_diagram_oid4vci.png)
+목표 시스템 구성에 있어서 VC 발급 관점에서의 Context Diagram은 아래와 같은 상호 작용을 포함한다.
+
+- **A. Authorization Request** : Holder가 Resource Owner로서 발급에 동의하기 위해 Wallet이 Authorization Request를 보낸다. 일반적으로 Authorization Code Flow가 사용된다.
+- **B. Authorization Grant** : Hodler가 동의한 후 Authorization Server로부터 Authorization Code를 Wallet이 전달 받는다. 해당 절차에는 Authorization Server로의 로그인 과정 등이 포함된다. 여기서는 이후의 구체적인 흐름은 생략하였다.
+- **C. Authorization Grant 전달** : Wallet은 받은 Authorization Code를 Authorization Server에 전달하여 Access Token을 요청한다.
+- **D. Access Token 수신** : Authorization Server는 유효한 Authorization Code를 확인한 뒤 Access Token을 Wallet에 발급한다.
+- **E. Credential Request (Access Token 포함)** : Wallet은 Access Token을 포함하여 Issuer에게 Credential Request를 보낸다. 이때 요청은 OID4VCI 표준을 따른다.
+- **F. VC 응답 (Protected Resource)** : Issuer는 요청된 Credential을 검증한 후 Verifiable Credentials을 Wallet에 반환한다.
+
+### 3.2 VP 제출
 
 
 ## 4. OID4VC 분석 결과
