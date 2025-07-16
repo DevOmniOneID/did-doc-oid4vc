@@ -50,11 +50,11 @@ OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링함
 
 OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리오에 대응함
 
-- **Authorization Code Flow**: 사용자의 명시적인 인증과 동의가 필요한 전통적인 웹 기반 흐름으로, Wallet은 사용자를 Authorization Server로 리디렉션하여 로그인 및 동의 절차를 거친 후, 발급에 필요한 토큰을 받음
+- **Authorization Code Flow**: 사용자의 명시적인 인증과 동의가 필요한 전통적인 웹 기반 흐름으로, Wallet은 사용자를 Authorization Server로 리다이렉션하여 로그인 및 동의 절차를 거친 후, 발급에 필요한 토큰을 받음
 
 ![Authorization Code Flow](./oid4vci_authorization_code_flow.svg)
 
-- **Pre-Authorized Code Flow**: 사용자가 이미 다른 채널(예: 이메일, SMS, 오프라인)을 통해 인증 및 동의를 완료했다고 가정하는 흐름으로, Wallet은 `Credential Offer`에 포함된 `pre-authorized_code`를 사용하여 즉시 토큰을 발급받으며, 사용자 리디렉션 과정이 생략되어 UX가 간소화됨
+- **Pre-Authorized Code Flow**: 사용자가 이미 다른 채널(예: 이메일, SMS, 오프라인)을 통해 인증 및 동의를 완료했다고 가정하는 흐름으로, Wallet은 `Credential Offer`에 포함된 `pre-authorized_code`를 사용하여 즉시 토큰을 발급받으며, 사용자 리다이렉션 과정이 생략되어 UX가 간소화됨
 
 ![Pre-Authorized Code Flow](./oid4vci_pre_authorized_code_flow.svg)
 ---
@@ -193,7 +193,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     Host: auth-server.example.com
     ```
 -   **응답 (Response):**
-    -   사용자 동의 시, HTTP `302 Found`와 함께 `redirect_uri`로 리디렉션되며, 쿼리 파라미터로 `code` (Authorization Code)를 전달함
+    -   사용자 동의 시, HTTP `302 Found`와 함께 `redirect_uri`로 리다이렉션되며, 쿼리 파라미터로 `code` (Authorization Code)를 전달함
     ```http
     HTTP/1.1 302 Found
     Location: https://wallet.example.org/cb?code=Splx10BeZQQYbYS6WxSbIA&state=...
@@ -219,7 +219,6 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     -   **주요 파라미터:**
         -   `access_token`: Credential Endpoint에 접근하기 위한 Bearer 토큰
         -   `token_type`: "Bearer"
-        -   `c_nonce`: (Pre-Authorized Code Flow 시) Replay 공격 방지를 위해 Credential Request에 포함해야 할 nonce
         -   `authorization_details`: (선택 사항) 발급 가능한 Credential에 대한 식별자(`credential_identifiers`) 등을 포함
     ```http
     HTTP/1.1 200 OK
@@ -230,7 +229,6 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
       "access_token": "2YotnFZFEjr1zCsicMWpAA",
       "token_type": "Bearer",
       "expires_in": 3600,
-      "c_nonce": "tZignsnFbp"
     }
     ```
 
