@@ -20,6 +20,81 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 
 ## 2. 요구사항 도출
 ### 2.1 기능 요구사항
+
+<table>
+    <tr>
+      <td>구분</td>
+      <td>항목</td>
+      <td>설명</td>
+    </tr>
+    <tr>
+      <td rowspan="5">인증/인가</td>
+      <td>OAuth 2.0 지원</td>
+      <td>OAuth 2.0 표준 프로토콜 지원, 클라이언트 등록 및 PKCE 지원 등</td>
+    </tr>
+    <tr>
+      <td>Authorization Server 구현</td>
+      <td>OAuth 2.0 표준 엔드포인트 제공 서버 구현, Access Token 발급 및 검증 기능, Refresh Token 구현 등</td>
+    </tr>
+    <tr>
+      <td>TLS 적용</td>
+      <td>인증 및 데이터 전송 전 구간에 HTTPS 적용(TLS 1.2 이상 필수) 등</td>
+    </tr>
+    <tr>
+      <td>SIOPv2 구현</td>
+      <td>SIOPv2 표준에 따라 사용자 DID 기반 ID Token 발급 등</td>
+    </tr>
+    <tr>
+      <td>App Scheme 지원</td>
+      <td>Native App 연동을 위한 Custom URI 및 App Scheme 지원</td>
+    </tr>
+    <tr>
+      <td rowspan="4">VC 발급</td>
+      <td>Issuer Endpoint 구현</td>
+      <td>OID4VCI 표준 엔드포인트 구현 등</td>
+    </tr>
+    <tr>
+      <td>VC 발급 Metadata 제공</td>
+      <td>Profile 정보에 해당하는 Metadata 제공 등</td>
+    </tr>
+    <tr>
+      <td>OID4VCI Pre-authorized code 프로토콜 적용</td>
+      <td>Pre-authorized code 프로토콜 기반 VC 발급 플로우 지원 등</td>
+    </tr>
+    <tr>
+      <td>OID4VCI Authorization code 프로토콜 적용</td>
+      <td>Authorization code 프로토콜 기반 VC 발급 플로우 지원 등</td>
+    </tr>
+    <tr>
+      <td rowspan="4">VP 제출</td>
+      <td>Verifier Endpoint 구현</td>
+      <td>OID4VP 표준 엔드포인트 구현 등</td>
+    </tr>
+    <tr>
+      <td>DCQL 지원</td>
+      <td>Profile 정보 제공 등을 위한 Digital Credentials Query Language 지원 등</td>
+    </tr>
+    <tr>
+      <td>OID4VP Cross Device 프로토콜 적용</td>
+      <td>Cross Device 프로토콜 기반 VP 제출 플로우 지원 등</td>
+    </tr>
+    <tr>
+      <td>OID4VP Same Device 프로토콜 적용</td>
+      <td>Same Device 프로토콜 기반 VP 제출 플로우 지원 등</td>
+    </tr>
+    <tr>
+      <td rowspan="2">데이터 모델</td>
+      <td>JWT 적용</td>
+      <td>VC, VP, ID Token 등 모든 핵심 메시지를 JWT 형식으로 처리</td>
+    </tr>
+    <tr>
+      <td>JWK / JWE 지원</td>
+      <td>공개키 교환을 위한 JWK 지원, ECDH 기반 Payload 암호화를 위한 JWE 지원 등</td>
+    </tr>
+</table>
+
+
+
 ### 2.2 비기능 요구사항
 
 
