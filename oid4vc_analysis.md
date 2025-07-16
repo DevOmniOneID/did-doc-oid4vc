@@ -146,7 +146,7 @@ OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리�
 
 ### 4.4.1 개요 및 역할
 
-**SIOPv2 (Self-Issued OpenID Provider v2)**는 사용자가 자기 자신을 OpenID Provider로 삼아, **중앙 ID 제공자 없이 스스로 인증을 수행하는 분산 신원 인증 모델**입니다.
+**SIOPv2 (Self-Issued OpenID Provider v2)** 는 사용자가 자기 자신을 OpenID Provider로 삼아, **중앙 ID 제공자 없이 스스로 인증을 수행하는 분산 신원 인증 모델** 이다.
 
 - 기존의 Google, Facebook 같은 중앙화된 IDP 구조를 대체
 - 사용자가 직접 **ID Token을 생성**하고, 이를 제시함으로써 **자기주권형 신원(Self-Sovereign Identity, SSI)** 실현
@@ -161,24 +161,24 @@ OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리�
 
 ### 4.4.2 OID4VCI에서의 Client Authentication 방식으로 사용
 
-OID4VCI에서 사용자는 Credential Issuer에게 VC 발급을 요청합니다.  
-이때 Issuer는 요청자의 신원을 확인해야 하며, **Client Authentication** 방식으로 **SIOP 기반 ID Token**이 활용됩니다.
+OID4VCI에서 사용자는 Credential Issuer에게 VC 발급을 요청한다.  
+이때 Issuer는 요청자의 신원을 확인해야 하며, **Client Authentication** 방식으로 **SIOP 기반 ID Token**이 활용된다.
 
-##### 🔒 흐름 요약:
+##### 흐름 요약:
 1. 사용자가 지갑을 통해 VC 발급 요청
 2. 지갑은 **SIOP 방식으로 ID Token 생성**
 3. Credential Issuer는 해당 ID Token을 검증하여 사용자 식별 및 인증 수행
 
-> ✅ 기존 `client_secret`, `client_assertion` 방식 대신 사용자가 **직접 서명한 ID Token**을 사용하는 방식
+> 기존 `client_secret`, `client_assertion` 방식 대신 사용자가 **직접 서명한 ID Token**을 사용하는 방식
 
 ---
 
 ### 4.4.3 OID4VP에서의 Subject 인증 방식으로 사용
 
-OID4VP는 사용자가 VC를 제시할 때, Verifier가 **“누가 제시했는가”**를 검증해야 합니다.  
-이때 SIOPv2는 **VC의 제시 주체(Subject)** 인증 수단으로 사용됩니다.
+OID4VP는 사용자가 VC를 제시할 때, Verifier가 **“누가 제시했는가”**를 검증해야 한다.
+이때 SIOPv2는 **VC의 제시 주체(Subject)** 인증 수단으로 사용된다.
 
-#### 🧩 인증 흐름:
+#### 인증 흐름:
 1. Verifier가 Presentation Request 전송
 2. Wallet이 **SIOPv2 방식의 ID Token** 생성
 3. VP와 함께 Verifier에게 전달
@@ -190,7 +190,7 @@ OID4VP는 사용자가 VC를 제시할 때, Verifier가 **“누가 제시했는
 
 SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집니다:
 
-#### 📦 JWT 구성:
+#### JWT 구성:
 
 ##### Header
 ```json
@@ -228,11 +228,11 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집�
 
 지갑이 인증 주체로 동작할 때, Verifier 또는 Credential Issuer는 지갑이 제시하는 **ID Token의 진위**와 **서명자 식별자(DID)**를 검증합니다.
 
-#### ▶️ 시퀀스 다이어그램 (OID4VP 기준)
+#### 시퀀스 다이어그램 (OID4VP 기준)
 
 ![SIOP 시퀀스](./siop.svg)
 
-#### 🧠 설명 요약:
+#### 설명 요약:
 
 1. **Wallet**은 DID를 기반으로 JWT 서명
 2. **Verifier**는 해당 DID를 resolve 하여 공개키 확보
@@ -240,7 +240,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집�
 
 ---
 
-### 🔚 정리
+### 정리
 
 | 항목 | 설명 |
 |------|------|
@@ -250,7 +250,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가집�
 | **ID Token 구조** | JWT 형식, DID 기반 발급자, 서명 포함 |
 | **검증 흐름** | DID → 공개키 → JWT 서명 및 Claim 검증 |
 
-> ✅ **SIOPv2는 Self-Sovereign Identity 실현을 위한 핵심 구성요소로, 신뢰 가능한 자기주권형 인증을 구현합니다.**
+> **SIOPv2는 Self-Sovereign Identity 실현을 위한 핵심 구성요소로, 신뢰 가능한 자기주권형 인증을 구현합니다.**
 
 
 
