@@ -114,8 +114,8 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 <br>
 
 ### 4.2 OID4VCI
-<br>
-
+OID4VCI(OpenID for Verifiable Credential Issuance)는 OAuth 2.0 기반의 표준화된 방식으로 VC를 발급받을 수 있도록 정의한 프로토콜로써 Wallet은 OAuth 클라이언트로 동작하며, Credential Issuer와 Authorization Server를 통해 VC를 안전하게 수령한다.
+이 표준은 다양한 포맷과 발급 흐름을 지원하여 상호운용성과 보안을 모두 고려함
 ### 4.2.1 ODI4VCI 개요
 ### 4.2.1.1 OAuth 2.0 적용 범위
 
@@ -129,11 +129,11 @@ OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링함
 
 OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리오에 대응함
 
-- **Authorization Code Flow**: 사용자의 명시적인 인증과 동의가 필요한 전통적인 웹 기반 흐름으로, Wallet은 사용자를 Authorization Server로 리디렉션하여 로그인 및 동의 절차를 거친 후, 발급에 필요한 토큰을 받음
+- **Authorization Code Flow**: 사용자의 명시적인 인증과 동의가 필요한 전통적인 웹 기반 흐름으로, Wallet은 사용자를 Authorization Server로 리다이렉션하여 로그인 및 동의 절차를 거친 후, 발급에 필요한 토큰을 받음
 
 ![Authorization Code Flow](./oid4vci_authorization_code_flow.svg)
 
-- **Pre-Authorized Code Flow**: 사용자가 이미 다른 채널(예: 이메일, SMS, 오프라인)을 통해 인증 및 동의를 완료했다고 가정하는 흐름으로, Wallet은 `Credential Offer`에 포함된 `pre-authorized_code`를 사용하여 즉시 토큰을 발급받으며, 사용자 리디렉션 과정이 생략되어 UX가 간소화됨
+- **Pre-Authorized Code Flow**: 사용자가 이미 다른 채널(예: 이메일, SMS, 오프라인)을 통해 인증 및 동의를 완료했다고 가정하는 흐름으로, Wallet은 `Credential Offer`에 포함된 `pre-authorized_code`를 사용하여 즉시 토큰을 발급받으며, 사용자 리다이렉션 과정이 생략되어 UX가 간소화됨
 
 ![Pre-Authorized Code Flow](./oid4vci_pre_authorized_code_flow.svg)
 ---
@@ -271,8 +271,14 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     GET /authorize?response_type=code&client_id=s6BhdRkqt3&redirect_uri=https%3A%2F%2Fwallet.example.org%2Fcb&authorization_details=%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_configuration_id%22%3A%22UniversityDegreeCredential%22%7D%5D HTTP/1.1
     Host: auth-server.example.com
     ```
+-   **요청 (Request) - `scope` 사용 예시:**
+    ```http
+    GET /authorize?response_type=code&client_id=...&scope=UniversityDegreeCredential HTTP/1.1
+    Host: auth-server.example.com
+    ```
+
 -   **응답 (Response):**
-    -   사용자 동의 시, HTTP `302 Found`와 함께 `redirect_uri`로 리디렉션되며, 쿼리 파라미터로 `code` (Authorization Code)를 전달함
+    -   사용자 동의 시, HTTP `302 Found`와 함께 `redirect_uri`로 리다이렉션되며, 쿼리 파라미터로 `code` (Authorization Code)를 전달함
     ```http
     HTTP/1.1 302 Found
     Location: https://wallet.example.org/cb?code=Splx10BeZQQYbYS6WxSbIA&state=...
@@ -298,7 +304,6 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     -   **주요 파라미터:**
         -   `access_token`: Credential Endpoint에 접근하기 위한 Bearer 토큰
         -   `token_type`: "Bearer"
-        -   `c_nonce`: (Pre-Authorized Code Flow 시) Replay 공격 방지를 위해 Credential Request에 포함해야 할 nonce
         -   `authorization_details`: (선택 사항) 발급 가능한 Credential에 대한 식별자(`credential_identifiers`) 등을 포함
     ```http
     HTTP/1.1 200 OK
@@ -309,7 +314,6 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
       "access_token": "2YotnFZFEjr1zCsicMWpAA",
       "token_type": "Bearer",
       "expires_in": 3600,
-      "c_nonce": "tZignsnFbp"
     }
     ```
 
@@ -476,15 +480,34 @@ Content-Type: application/json
 
 ---
 
-### 4.2.4 Security Considerations
+### 4.2.4 고려사항
 
-OID4VCI는 안전한 VC 발급을 위해 여러 보안 메커니즘을 정의함
+### 4.2.4.1 보안 고려사항 (Security Considerations)
 
 - **소유자 증명 (Holder Binding)**: `Credential Request`의 `proof` 파라미터는 VC가 정당한 소유자에게 발급되도록 보장함. Holder의 개인키로 서명된 증명을 통해 발급자는 요청자가 VC에 포함될 공개키의 소유자임을 확인함
 - **재전송 공격 방지**: `c_nonce`는 토큰과 VC 요청을 한 번의 트랜잭션으로 묶어 재전송 공격을 방지함. 토큰 발급 시 받은 `c_nonce`는 VC 요청 `proof`에 포함되어야 하며, 한 번 사용된 `c_nonce`는 다시 사용할 수 없음
 - **피싱 공격 방지**: Pre-authorized code flow에서 `tx_code`(PIN 등)를 사용하여 QR 코드 탈취(shoulder surfing) 후 다른 기기에서 토큰을 발급받으려는 공격을 막을 수 있음
 - **전송 계층 보안**: 모든 통신은 TLS(Transport Layer Security)로 암호화되어야 함
 - **Credential Offer 보안**: `Credential Offer` 자체는 서명되지 않은 정보이므로, Wallet은 Offer의 `credential_issuer` 정보를 신뢰하지 않고, 해당 URL의 메타데이터 엔드포인트(`.well-known`)를 직접 조회하여 발급자를 검증해야 함
+
+### 4.2.4.2 구현 고려사항 (Implementation Considerations)
+
+-   **자격 증명 바인딩**: VC 소유자에게 VC를 바인딩하는 방법으로 클레임 기반 바인딩(암호화 키 없이 클레임으로 소유 확인)과 베어러 자격 증명(소유 증명 없이 제시)이 있음
+-   **자격 증명 엔드포인트 접근**: 동일한 액세스 토큰으로 여러 번 접근 가능하며, 발급자는 갱신 여부 및 재인증 필요성을 결정함
+-   **발급자 식별자 관계**: 메타데이터의 HTTPS URL 발급자 식별자와 VC 내 발급자 식별자(DID 등) 간의 바인딩을 Wallet이 확인할 수 있어야 함
+-   **자격 증명 갱신**: Wallet은 유효한 액세스/갱신 토큰으로 VC를 업데이트하거나, 발급자가 재발급 프로세스를 시작하여 VC를 갱신할 수 있음
+-   **사양 의존성**: 현재 최종 사양이 아닌 여러 사양(OpenID Federation, SD-JWT VC 등)에 의존하고 있음을 인지해야 함 (draft) 
+
+### 4.2.4.3 개인 정보 보호 고려사항 (Privacy Considerations)
+
+-   **원칙 준수**: [RFC9396] 및 [ISO.29100]의 개인 정보 보호 원칙을 준수해야 함.
+-   **사용자 동의**: VC 발급 전 최종 사용자에게 정보 포함 내용 및 목적을 명확히 설명하고 동의를 얻어야 함.
+-   **최소 공개**: 불필요한 클레임 노출 방지를 위해 선택적 공개를 지원하거나 각 클레임별 VC 발급을 고려해야 함.
+-   **자격 증명 저장**: 최종 사용자 데이터 유출 방지를 위해 저장되는 데이터 양을 최소화하고, VC는 암호화된 형태로 필요한 기간 동안만 저장해야 함.
+-   **상관 관계 방지**: VC에 인코딩된 고유 값(클레임, 식별자, 서명 등)을 통한 사용자 추적을 방지하기 위해 고유 VC 사용, 비상관 관계 암호화 스키마 사용, 추적 가능한 값 폐기 등을 적용해야 함.
+-   **민감 정보 노출 방지**: 인증 요청 시 민감한 정보를 포함하지 않아야 하며, Wallet 증명 주체는 특정 인스턴스가 아닌 Wallet 유형을 식별하는 값이어야 함.
+-   **발급자 및 Wallet 식별 정보 보호**: 발급자 식별 정보(URL, 인증서 등)를 통한 최종 사용자 정보 유추를 방지하고, Wallet 식별 정보 유출 방지를 위해 사용자 상호 작용 또는 발급자 신뢰 설정을 요구해야 함.
+-   **신뢰할 수 없는 Wallet 처리**: Wallet이 민감한 정보를 적절히 처리하도록 발급자는 Wallet을 적절히 인증하고 신뢰할 수 있는 엔터티인지 확인해야 함.
 <br>
 
 
