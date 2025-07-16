@@ -37,10 +37,33 @@ Open DID 플랫폼에 OID4VC 도입을 통해 EUDIW(EU Digital Identity Wallet) 
 ### 4.2 OID4VCI
 <br>
 
-### 4.2.1 ODI4VCI에 대한 전체 흐름
-OID4VCI는 OAuth 2.0의 인가 프레임워크를 확장하여, Wallet(OAuth 2.0 Client)이 사용자(Resource Owner)를 대신하여 발급자(Resource Server)로부터 VC(Protected Resource)를 안전하고 상호운용 가능한 방식으로 발급받는 절차를 정의합니다. (RFC 6749 - The OAuth 2.0 Authorization Framework 참조)
+### 4.2.1 ODI4VCI 개요
+#### 4.2.1.1 OAuth 2.0 적용 범위
 
+OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링합니다.
+- **Wallet**: OAuth 2.0의 `Client` 역할을 수행합니다.
+- **사용자 (End-User)**: `Resource Owner`로서 자신의 데이터에 대한 접근 권한을 Wallet에 부여합니다.
+- **Credential Issuer**: VC를 발급하는 주체로, `Resource Server`의 역할을 합니다.
+- **Authorization Server**: 사용자의 인증 및 동의를 처리하고 접근 토큰을 발급하는 `Authorization Server`입니다. Credential Issuer가 이 역할을 겸할 수 있습니다.
+
+#### 4.2.1.2 Authorization Code Flow vs. Pre-Authorized Code Flow
+
+OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리오에 대응합니다.
+
+- **Authorization Code Flow**: 사용자의 명시적인 인증과 동의가 필요한 전통적인 웹 기반 흐름입니다. Wallet은 사용자를 Authorization Server로 리디렉션하여 로그인 및 동의 절차를 거친 후, 발급에 필요한 토큰을 받습니다.
+
+![Authorization Code Flow](./oid4vci_authorization_code_flow.svg)
+
+- **Pre-Authorized Code Flow**: 사용자가 이미 다른 채널(예: 이메일, SMS, 오프라인)을 통해 인증 및 동의를 완료했다고 가정하는 흐름입니다. Wallet은 `Credential Offer`에 포함된 `pre-authorized_code`를 사용하여 즉시 토큰을 발급받으며, 사용자 리디렉션 과정이 생략되어 UX가 간소화됩니다.
+
+![Pre-Authorized Code Flow](./oid4vci_pre_authorized_code_flow.svg)
 ---
+
+- 
+<br>
+
+### 4.2.2 OID4VCI Endpoint
+
 
 **단계 1: Credential Offer (자격증명 제공)**
 
@@ -105,10 +128,6 @@ OID4VCI는 OAuth 2.0의 인가 프레임워크를 확장하여, Wallet(OAuth 2.0
     *   `invalid_token`, `unsupported_credential_type` 등 OAuth 2.0 표준에 정의된 오류 코드를 사용하여 실패 이유를 명확히 전달합니다.
 
 ---
-- 
-<br>
-
-### 4.2.2 OID4VCI Endpoint
 
 <br>
 
