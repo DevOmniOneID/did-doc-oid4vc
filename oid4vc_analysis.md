@@ -64,68 +64,269 @@ OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리�
 
 ### 4.2.2 OID4VCI Endpoint
 
+OID4VCI에서는 Verifiable Credential 발급을 위해 여러 개의 Endpoint가 정의됩니다.
+Credential Offer, Authorization, Token, Credential Endpoint는 기본 흐름을 구성하며,
+Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 강화하거나 유연한 발급을 지원합니다
 
-**단계 1: Credential Offer (자격증명 제공)**
+아래는 각 endpoint에 대한 발급 흐름을 도식화하였습니다. 
 
-- 프로토콜의 시작점으로, 발급자가 Wallet에게 발급 가능한 VC와 발급 절차를 시작하는 데 필요한 정보를 전달하는 과정입니다. 이 정보는 `Credential Offer` 객체에 담겨 있으며, URI를 통해 값으로 전달되거나(pass-by-value) 해당 URI에서 직접 GET 요청으로 가져올 수 있습니다(pass-by-reference).
+![Endpoint Flow](./oid4vc_endpoint_flow.png)
 
-*   **`credential_offer` 객체 주요 파라미터:**
-    *   `credential_issuer` (필수): 발급자의 고유 식별자 URL. 이 URL은 발급자 메타데이터를 찾는 데 사용됩니다.
-    *   `credentials` (필수): 발급자가 제공하는 VC의 종류를 명시하는 배열. 각 항목은 `format` (예: `jwt_vc_json`), `types` 등 VC의 구체적인 속성을 포함합니다.
-    *   `grants` (조건부 필수): VC 발급을 위해 지원되는 OAuth 2.0 인가 그랜트(Grant) 정보를 담는 객체. `authorization_code` 또는 `urn:ietf:params:oauth:grant-type:pre-authorized_code` 중 하나 이상이 반드시 포함되어야 합니다.
+| Endpoint                     | 설명                                               | 비고                            |
+|-----------------------------|----------------------------------------------------|---------------------------------|
+| Credential Offer Endpoint   | VC 발급을 시작하는 제안 전달                       |                                 |
+| Authorization Endpoint      | 사용자 인증 및 인가 (Authorization Code Flow)     | OAuth 2.0 표준                  |
+| Token Endpoint              | Access Token 발급                                  | OAuth 2.0 표준                  |
+| Nonce Endpoint              | VC 요청 서명을 위한 nonce 수령                    | 선택                            |
+| Credential Endpoint         | VC 발급                                            | 필수                            |
+| Deferred Credential Endpoint| 지연된 VC 재요청                                   | 선택                            |
+| Notification Endpoint       | 발급된 Credential의 상태 변경(사용됨/삭제됨 등) 통지 | 선택                            |
 
----
+* Credential Issuer Metadata 필드는 없지만, 표준 경로를 따라 조회하는 방식입니다.
+(RFC 8615 + OIDC4VCI 사양 11.2절 기반) URL 뒤에 /.well-known/openid-credential-issuer를 붙여서 접근
+<br>
 
-**단계 2: Issuer Metadata 조회 (발급자 메타데이터 조회)**
 
-- Wallet은 `Credential Offer`에서 얻은 `credential_issuer` URL을 사용하여, `/.well-known/openid-credential-issuer` 경로로 GET 요청을 보내 발급자의 메타데이터를 획득합니다. 이 메타데이터는 VC 발급에 필요한 모든 엔드포인트 URL, 지원 기능, VC 상세 정보 등을 담고 있어 동적인 설정이 가능하게 합니다. (상세 내용은 `4.2.3` 참조)
+### 4.2.2.1 Credential Offer Endpoint
 
----
+-   **개념:** Issuer가 Wallet에게 특정 Credential의 발급을 제안하기 위해 사용하는 시작점입니다. 이 제안은 QR 코드, 링크 등 다양한 방식으로 전달될 수 있으며, Wallet이 발급 절차를 개시하는 데 필요한 정보를 담고 있습니다.
+-   **전달 방식:**
+    -   `credential_offer`: Credential Offer 정보가 값으로 포함된 JSON 객체를 직접 전달합니다.
+    -   `credential_offer_uri`: Credential Offer 정보가 담긴 리소스를 가리키는 URL을 전달합니다. Wallet은 이 URI에 `GET` 요청을 보내 실제 Offer 정보를 가져와야 합니다. 이 방식은 QR 코드의 크기 제약을 피하는 데 유용합니다.
+-   **요청 (Request) - by URI:**
+    ```http
+    GET /credential-offer?credential_offer_uri=https%3A%2F%2Fcredential-issuer.example.com%2Foffer%2F12345
+    Host: wallet.example.com
+    ```
+    *또는 Wallet이 `credential_offer_uri`에 직접 요청:*
+    ```http
+    GET /offer/12345 HTTP/1.1
+    Host: credential-issuer.example.com
+    ```
+-   **응답 (Response) - by URI:**
+    -   `credential_offer_uri` 사용 시, Issuer는 HTTP `200 OK`와 함께 `application/json` 형식의 Credential Offer 객체를 반환합니다.
+    -   **주요 파라미터:**
+        -   `credential_issuer`: Issuer의 URL. Wallet은 이 URL을 사용하여 Issuer의 Metadata를 조회합니다.
+        -   `credential_configuration_ids`: 발급 제안된 Credential의 설정 ID 배열. Wallet은 이 ID를 사용하여 Metadata에서 상세 정보를 찾습니다.
+        -   `grants`: (선택 사항) Wallet이 사용할 수 있는 OAuth 2.0 Grant Type 정보.
+            -   `authorization_code`: 사용자의 명시적인 인증/동의가 필요한 경우 사용됩니다.
+            -   `urn:ietf:params:oauth:grant-type:pre-authorized_code`: 사용자의 사전 동의가 이미 완료된 경우 사용됩니다.
+    ```http
+    HTTP/1.1 200 OK
+    Content-Type: application/json
 
-**단계 3: Authorization Grant & Token Acquisition (인가 및 토큰 획득)**
+    {
+      "credential_issuer": "https://credential-issuer.example.com",
+      "credential_configuration_ids": [
+        "UniversityDegreeCredential"
+      ],
+      "grants": {
+        "authorization_code": {
+          "issuer_state": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        },
+        "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
+          "pre-authorized_code": "oaKazRN8I0IbtZ0C7JuMn5",
+          "tx_code": {
+            "length": 4,
+            "input_mode": "numeric",
+            "description": "Please provide the one-time code that was sent via e-mail"
+          }
+        }
+      }
+    }
+    ```
 
-- Wallet은 발급자 메타데이터에 명시된 `grants` 정보를 바탕으로 VC 발급에 필요한 접근 토큰(Access Token)을 획득합니다.
+### 4.2.2.2 Credential Issuer Metadata Endpoint
 
-1.  **Authorization Code Grant (사용자 승인 필요):**
-    *   **인가 요청:** Wallet은 발급받을 VC의 `id`나 `types`를 `scope` 파라미터에 포함하여, 메타데이터에 명시된 `authorization_endpoint`로 사용자를 리디렉션합니다.
-    *   **사용자 인증/동의:** 사용자는 인가 서버에서 인증(로그인)하고, Wallet이 요청한 VC 발급에 대한 동의를 수행합니다.
-    *   **토큰 요청:** 인가 서버가 `redirect_uri`로 `인가 코드(code)`를 반환하면, Wallet은 이 코드를 `token_endpoint`에 보내 `Access Token`, `Refresh Token`(선택), 그리고 `c_nonce`(Credential Nonce)를 발급받습니다. `c_nonce`는 이후 VC 요청과 토큰을 암호학적으로 바인딩하는 데 사용됩니다.
+-   **개념:** Wallet이 Credential Issuer의 설정을 동적으로 발견하기 위해 사용하는 Endpoint입니다. Issuer가 지원하는 자격증명 종류, 암호화 방식, Endpoint URL 등 VC 발급에 필요한 모든 정보를 제공합니다.
+-   **Endpoint:** `/.well-known/openid-credential-issuer`
+-   **요청 (Request):**
+    -   HTTP Method: `GET`
+    -   Wallet은 Issuer의 식별자(URL)에 `/.well-known/openid-credential-issuer` 경로를 추가하여 Metadata를 요청합니다.
+    ```http
+    GET /.well-known/openid-credential-issuer HTTP/1.1
+    Host: credential-issuer.example.com
+    Accept: application/json
+    ```
+-   **응답 (Response):**
+    -   성공 시 HTTP `200 OK`와 함께 `application/json` 형식의 Metadata를 반환합니다.
+    -   **주요 파라미터:**
+        -   `credential_issuer`: Issuer의 식별자 (URL).
+        -   `credential_endpoint`: Credential을 발급하는 Endpoint URL.
+        -   `authorization_servers`: (선택 사항) Issuer가 신뢰하는 OAuth 2.0 Authorization Server의 식별자 배열.
+        -   `credential_configurations_supported`: 지원하는 Credential 종류 및 형식에 대한 상세 정보.
+        -   `deferred_credential_endpoint`: (선택 사항) 지연된 Credential 발급을 위한 Endpoint URL.
+        -   `nonce_endpoint`: (선택 사항) `c_nonce` 값을 얻기 위한 Endpoint URL.
+        -   `notification_endpoint`: (선택 사항) Credential 발급 완료 후 Wallet이 Issuer에게 알림을 보내는 Endpoint URL.
+    ```http
+    HTTP/1.1 200 OK
+    Content-Type: application/json
 
-2.  **Pre-Authorized Code Grant (사전 승인):**
-    *   **개념:** 사용자가 이미 다른 채널을 통해 인증 및 동의를 완료했음을 전제로, `Credential Offer`에 포함된 `pre-authorized_code`를 사용하여 즉시 토큰을 발급받는 방식입니다.
-    *   **토큰 요청:** Wallet은 `pre-authorized_code`를 `token_endpoint`에 직접 제출하여 `Access Token`과 `c_nonce`를 획득합니다. 이 흐름에서는 사용자 리디렉션이 발생하지 않습니다.
-    *   `tx_code` (Transaction Code): 선택적으로 사용자 확인을 위해 간단한 추가 인증(예: PIN)을 요구할 수 있으며, 이 정보는 `Credential Offer`의 `tx_code` 필드에 명시됩니다.
+    {
+      "credential_issuer": "https://credential-issuer.example.com",
+      "credential_endpoint": "https://credential-issuer.example.com/credential",
+      "authorization_servers": ["https://auth-server.example.com"],
+      "credential_configurations_supported": {
+        "UniversityDegreeCredential": {
+          "format": "jwt_vc_json",
+          "scope": "UniversityDegree",
+          "cryptographic_binding_methods_supported": ["did:example"],
+          "credential_definition": {
+            "type": ["VerifiableCredential", "UniversityDegreeCredential"]
+          }
+        }
+      },
+      "nonce_endpoint": "https://credential-issuer.example.com/nonce",
+      "notification_endpoint": "https://credential-issuer.example.com/notification"
+    }
+    ```
 
----
+### 4.2.2.3 Authorization Endpoint
 
-**단계 4: Credential Request (자격증명 요청)**
+-   **개념:** 표준 OAuth 2.0의 일부로, Wallet(Client)이 사용자의 동의를 얻어 Credential 발급에 대한 권한을 부여받는 Endpoint입니다.
+-   **요청 방식:**
+    1.  **`authorization_details` 사용 (권장):** 발급받을 Credential의 종류(`type`), 형식(`format`), 포함될 클레임(`claims`) 등 상세 정보를 JSON 구조로 명확하게 전달합니다. 여러 종류의 Credential을 동시에 요청하거나 복잡한 요청에 적합합니다.
+    2.  **`scope` 사용:** 발급받을 Credential을 단순한 문자열(scope)로 요청합니다. 간단한 요청에 사용될 수 있으며, 해당 scope의 의미는 Issuer의 Metadata에 정의되어 있어야 합니다.
+-   **요청 (Request) - `authorization_details` 사용 예시:**
+    ```http
+    GET /authorize?response_type=code&client_id=s6BhdRkqt3&redirect_uri=https%3A%2F%2Fwallet.example.org%2Fcb&authorization_details=%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_configuration_id%22%3A%22UniversityDegreeCredential%22%7D%5D HTTP/1.1
+    Host: auth-server.example.com
+    ```
+-   **응답 (Response):**
+    -   사용자 동의 시, HTTP `302 Found`와 함께 `redirect_uri`로 리디렉션되며, 쿼리 파라미터로 `code` (Authorization Code)를 전달합니다.
+    ```http
+    HTTP/1.1 302 Found
+    Location: https://wallet.example.org/cb?code=Splx10BeZQQYbYS6WxSbIA&state=...
+    ```
 
-- Wallet은 획득한 `Access Token`을 사용하여 발급자의 `credential_endpoint`에 VC 발급을 공식적으로 요청합니다. 이 요청은 `POST` 메서드를 사용하며, `Authorization: Bearer <Access Token>` 헤더를 포함해야 합니다.
+### 4.2.2.4 Token Endpoint
 
-*   **요청 본문(Request Body) 주요 파라미터:**
-    *   `format` (필수): 발급받을 VC의 포맷 (예: `jwt_vc_json`). 메타데이터의 `credentials_supported`에 명시된 값이어야 합니다.
-    *   `types` (선택): 발급받을 VC의 `types`.
-    *   `proof` (조건부 필수): Holder(소유자)가 VC에 포함될 `credentialSubject`의 제어권을 가지고 있음을 증명하는 암호학적 증명입니다. 이는 VC가 올바른 주체에게 발급되도록 보장하는 핵심 보안 요소입니다.
-        *   **`proof_type`**: `jwt` 또는 `ldp_vp` 등 증명 유형.
-        *   **`jwt`**: Holder의 개인키로 서명된 JWT. 이 JWT의 Payload에는 `iss` (Holder의 DID), `aud` (발급자 `credential_issuer` URL), 그리고 토큰 응답에서 받은 `c_nonce`가 포함되어야 합니다. 발급자는 이 서명과 `c_nonce`를 검증하여 요청의 유효성을 확인합니다.
+-   **개념:** 표준 OAuth 2.0의 일부로, Wallet이 `code` (Authorization Code 또는 Pre-Authorized Code)를 Access Token으로 교환하는 Endpoint입니다.
+-   **요청 (Request) - Authorization Code 사용 예시:**
+    ```http
+    POST /token HTTP/1.1
+    Host: auth-server.example.com
+    Content-Type: application/x-www-form-urlencoded
 
----
+    grant_type=authorization_code
+    &code=Splx10BeZQQYbYS6WxSbIA
+    &redirect_uri=https%3A%2F%2Fwallet.example.org%2Fcb
+    &client_id=s6BhdRkqt3
+    &client_secret=...
+    ```
+-   **응답 (Response):**
+    -   성공 시 HTTP `200 OK`와 함께 Access Token 정보를 담은 JSON 객체를 반환합니다.
+    -   **주요 파라미터:**
+        -   `access_token`: Credential Endpoint에 접근하기 위한 Bearer 토큰.
+        -   `token_type`: "Bearer".
+        -   `c_nonce`: (Pre-Authorized Code Flow 시) Replay 공격 방지를 위해 Credential Request에 포함해야 할 nonce.
+        -   `authorization_details`: (선택 사항) 발급 가능한 Credential에 대한 식별자(`credential_identifiers`) 등을 포함.
+    ```http
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Cache-Control: no-store
 
-**단계 5: Credential Response (자격증명 응답)**
+    {
+      "access_token": "2YotnFZFEjr1zCsicMWpAA",
+      "token_type": "Bearer",
+      "expires_in": 3600,
+      "c_nonce": "tZignsnFbp"
+    }
+    ```
 
-- 발급자는 요청을 모두 검증한 후, VC를 생성하여 Wallet에 반환합니다.
+### 4.2.2.5 Nonce Endpoint
 
-*   **성공 응답 (Success):**
-    *   `format` (필수): 발급된 VC의 포맷.
-    *   `credential` (필수): 발급된 VC. `jwt_vc_json` 형식의 경우 JWS로 표현됩니다.
-    *   `c_nonce`, `c_nonce_expires_in` (선택): 새로운 `c_nonce`를 발급하여, 동일한 `Access Token`으로 여러 VC를 순차적으로 발급받을 수 있도록 합니다.
+-   **개념:** (선택 사항) Credential Request의 `proofs` 파라미터에 사용될 신선한 `c_nonce` 값을 얻기 위한 Endpoint입니다. 이는 Replay 공격을 방지하는 데 중요한 역할을 합니다.
+-   **요청 (Request):**
+    ```http
+    POST /nonce HTTP/1.1
+    Host: credential-issuer.example.com
+    Content-Length: 0
+    ```
+-   **응답 (Response):**
+    ```http
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Cache-Control: no-store
 
-*   **지연된 발급 (Deferred Issuance):**
-    *   VC 생성에 시간이 걸리는 경우, 발급자는 `202 Accepted` 상태 코드와 함께 `acceptance_token`을 반환합니다.
-    *   Wallet은 이 `acceptance_token`을 사용하여 나중에 메타데이터에 명시된 `deferred_credential_endpoint`로 VC를 조회할 수 있습니다.
+    {
+      "c_nonce": "wKI4LT17ac15ES9bw8ac4",
+      "c_nonce_expires_in": 86400
+    }
+    ```
 
-*   **오류 응답 (Error):**
-    *   `invalid_token`, `unsupported_credential_type` 등 OAuth 2.0 표준에 정의된 오류 코드를 사용하여 실패 이유를 명확히 전달합니다.
+### 4.2.2.6 Credential Endpoint
+
+-   **개념:** Wallet이 Access Token을 사용하여 실제 Credential 발급을 요청하는 핵심 Endpoint입니다.
+-   **요청 (Request):**
+    -   `Authorization` 헤더에 `Bearer <access_token>`을 포함해야 합니다.
+    -   **요청 방식:**
+        1.  **`credential_identifier` 사용:** Token Response의 `authorization_details`에서 받은 식별자를 사용하여 특정 Credential을 요청합니다.
+        2.  **`credential_configuration_id` 사용:** Token Response에 `authorization_details`가 없었을 경우, Authorization Request에서 사용했던 `scope`에 해당하는 `credential_configuration_id`를 사용합니다.
+    -   `proofs` 파라미터에 `c_nonce`를 포함한 암호학적 증명(e.g., JWT)을 전달하여 Credential을 특정 키에 바인딩하고 Replay 공격을 방지합니다.
+    ```http
+    POST /credential HTTP/1.1
+    Host: credential-issuer.example.com
+    Content-Type: application/json
+    Authorization: Bearer 2YotnFZFEjr1zCsicMWpAA
+
+    {
+      "credential_identifier": "CivilEngineeringDegree-2023",
+      "proofs": {
+        "jwt": "eyJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCIsImFsZyI6IkVTMjU2In0..."
+      }
+    }
+    ```
+-   **응답 (Response):**
+    -   **즉시 발급:** HTTP `200 OK`와 함께 발급된 Credential 정보를 반환합니다.
+    -   **지연 발급:** HTTP `202 Accepted`와 함께 `transaction_id`와 재시도 간격(`interval`)을 반환합니다.
+    ```http
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+
+    {
+      "credentials": [{
+        "credential": "eyJhbGciOiJFUzI1NiJ9...",
+        "format": "jwt_vc_json"
+      }],
+      "c_nonce": "b1F2-2a78-4d4c",
+      "notification_id": "3fwe98js"
+    }
+    ```
+
+### 4.2.2.7 Deferred Credential Endpoint
+
+-   **개념:** (선택 사항) Credential Endpoint에서 `transaction_id`를 받은 경우, Wallet이 주기적으로 Credential 발급 완료 여부를 확인하고 최종적으로 Credential을 수령하기 위해 사용하는 Endpoint입니다.
+-   **요청 (Request):**
+    ```http
+    POST /credential_deferred HTTP/1.1
+    Host: credential-issuer.example.com
+    Authorization: Bearer 2YotnFZFEjr1zCsicMWpAA
+
+    {
+      "transaction_id": "8xL0xBtZp8"
+    }
+    ```
+-   **응답 (Response):**
+    -   **발급 완료:** HTTP `200 OK`와 함께 Credential 정보를 반환합니다.
+    -   **아직 대기 중:** HTTP `202 Accepted`와 함께 다음 요청까지 대기할 시간을 `interval` 파라미터로 다시 반환합니다.
+
+### 4.2.2.8 Notification Endpoint
+
+-   **개념:** (선택 사항) Wallet이 Credential의 수신 상태(성공, 실패, 삭제 등)를 Issuer에게 알리기 위해 사용하는 Endpoint입니다.
+-   **요청 (Request):**
+    ```http
+    POST /notification HTTP/1.1
+    Host: credential-issuer.example.com
+    Authorization: Bearer 2YotnFZFEjr1zCsicMWpAA
+
+    {
+      "notification_id": "3fwe98js",
+      "event": "credential_accepted"
+    }
+    ```
+-   **응답 (Response):**
+    -   성공적으로 알림을 수신하면 HTTP `204 No Content`를 반환하는 것이 권장됩니다.
 
 ---
 
