@@ -586,8 +586,8 @@ OID4VCI에서 사용자는 Credential Issuer에게 VC 발급을 요청한다.
 이때 Issuer는 요청자의 신원을 확인해야 하며, **Client Authentication** 방식으로 **SIOP 기반 ID Token** (사용자의 식별자 기능)이 활용된다. 
 
 ##### 흐름 요약:
-1. 사용자가 지갑을 통해 VC 발급 요청
-2. 지갑은 **SIOP 방식으로 ID Token 생성**
+1. 사용자가 월렛을 통해 VC 발급 요청
+2. 월렛은 **SIOP 방식으로 ID Token 생성**
 3. Credential Issuer는 해당 ID Token을 검증하여 사용자 식별 및 인증 수행
 
 > 기존 `client_secret`, `client_assertion` 방식 대신 사용자가 **직접 서명한 ID Token**을 사용하는 방식
@@ -607,6 +607,7 @@ OID4VP는 사용자가 VC를 제시할 때, Verifier가 **누가 제시했는가
 
 
 #### 서비스 이용시 인증 흐름:
+![SIOP 시퀀스](./siop_flow.png)
 ![SIOP 시퀀스](./siop_seq.svg)
 
 ---
@@ -671,8 +672,8 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 | 항목 | 설명 |
 |------|------|
 | **SIOPv2** | 사용자가 직접 인증 주체가 되는 분산 ID 방식 |
-| **OID4VCI** | VC 발급 시 지갑이 ID Token을 이용해 자신을 인증 |
-| **OID4VP** | VC 제시 시 지갑이 제시자의 신원을 ID Token으로 증명 |
+| **OID4VCI** | VC 발급 시 월렛이 ID Token을 이용해 자신을 인증 |
+| **OID4VP** | VC 제시 시 월렛이 제시자의 신원을 ID Token으로 증명 |
 | **ID Token 구조** | JWT 형식, DID 기반 발급자, 서명 포함 |
 | **검증 흐름** | DID → 공개키 → JWT 서명 및 Claim 검증 |
 
