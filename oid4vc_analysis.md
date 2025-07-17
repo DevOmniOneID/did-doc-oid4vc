@@ -9,6 +9,43 @@
 | ------- | ---------- | --------------- |
 | v1.0.0  | 2025-07-18 | 최초 작성 |
 
+## 목차
+
+1. [범위 및 목표](#1-범위-및-목표)
+2. [요구사항 도출](#2-요구사항-도출)
+   - 2.1 [기능 요구사항](#21-기능-요구사항)
+   - 2.2 [비기능 요구사항](#22-비기능-요구사항)
+3. [목표 시스템 구성 (System Context Diagram)](#3-목표-시스템-구성-system-context-diagram)
+   - 3.1 [VC 발급](#31-vc-발급)
+   - 3.2 [VP 제출](#32-vp-제출)
+4. [OID4VC 분석 결과](#4-oid4vc-분석-결과)
+   - 4.1 [OID4VCI](#41-oid4vci)
+     - 4.1.1 [OID4VCI 개요](#411-oid4vci-개요)
+     - 4.1.2 [OID4VCI Endpoint](#412-oid4vci-endpoint)
+     - 4.1.3 [OID4VCI Issuer Metadata](#413-oid4vci-issuer-metadata)
+     - 4.1.4 [고려사항](#414-고려사항)
+   - 4.2 [OID4VP](#42-oid4vp)
+     - 4.2.1 [OID4VP 개요](#421-oid4vp-개요)
+     - 4.2.2 [Cross Device Flow vs. Same Device Flow](#422-cross-device-flow-vs-same-device-flow)
+     - 4.2.3 [OID4VP Redirect 기반 요청-응답 구조](#423-oid4vp-redirect-기반-요청-응답-구조)
+     - 4.2.4 [OID4VP Verifier Metadata](#424-oid4vp-verifier-metadata)
+     - 4.2.5 [OID4VP DCQL](#425-oid4vp-dcql)
+     - 4.2.6 [OID4VP VP Token](#426-oid4vp-vp-token)
+     - 4.2.7 [고려사항](#427-고려사항)
+   - 4.3 [SIOPv2](#43-siopv2)
+     - 4.3.1 [개요 및 역할](#431-개요-및-역할)
+     - 4.3.2 [OID4VCI에서의 Client Authentication 방식으로 사용](#432-oid4vci에서의-client-authentication-방식으로-사용)
+     - 4.3.3 [OID4VP에서의 Subject 인증 방식으로 사용](#433-oid4vp에서의-subject-인증-방식으로-사용)
+     - 4.3.4 [ID Token 발급 구조 (JWT + DID)](#434-id-token-발급-구조-jwt--did)
+     - 4.3.5 [SIOP 기반 Wallet의 검증 흐름](#435-siop-기반-wallet의-검증-흐름)
+5. [OID4VC 적용 전략](#5-oid4vc-적용-전략)
+6. [부록](#6-부록)
+   - 6.1 [개요](#61-개요)
+   - 6.1.1 [JWT (JSON Web Token)](#611-jwt-json-web-token)
+   - 6.1.2 [JWS (JSON Web Signature)](#612-jws-json-web-signature)
+   - 6.1.3 [JWE (JSON Web Encryption)](#613-jwe-json-web-encryption)
+   - 6.1.4 [JWK (JSON Web Key)](#614-jwk-json-web-key)
+
 ## 1. 범위 및 목표
 
 OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양한 디지털 월렛과의 연동을 목표로 상호운용성을 개선한다. 또한 OpenID와 OAuth 2.0 등 국제적으로 검증된 개방형 표준 프로토콜을 기반으로 전체 시스템을 구조화 및 고도화한다. 이와 함께 기존 Open DID의 레거시 요소를 정비할 수 있는 기회로 OID4VC를 활용하여 기존의 기술부채를 해소하고 기술적 고도화와 함께 Open DID의 가치를 더욱 향상시키는 것을 목표로 한다.
@@ -18,7 +55,9 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 ![OID4VC](./goals.png)
 
 ## 2. 요구사항 도출
+
 ### 2.1 기능 요구사항
+
 | **구분**     | 항목                                       | 설명                                                                 |
 |--------------|--------------------------------------------|----------------------------------------------------------------------|
 | **인가/인증** | OAuth 2.0 지원                              | OAuth 2.0 표준 프로토콜 지원, 클라이언트 등록 및 PKCE 지원 등       |
@@ -38,8 +77,8 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 | **데이터 모델**| JWT 적용                                   | VC, VP, ID Token 등 모든 핵심 메시지를 JWT 형식으로 처리 등        |
 |              | JWK / JWE 지원                              | 공개키 교환을 위한 JWK 지원, ECDH 기반 Payload 암호화를 위한 JWE 지원 등 |
 
-
 ### 2.2 비기능 요구사항
+
 | **구분**       | 항목                             | 설명                                                                                 |
 |----------------|----------------------------------|--------------------------------------------------------------------------------------|
 | **보안성**     | 세션 계층 암호화                 | OAuth 2.0 표준에 따라 모든 https 통신은 TLS 1.2 이상을 적용하여 세션 계층에서 암호화를 보장해야 함 |
@@ -51,10 +90,12 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 | **사용성**     | 사용자 지향 인터페이스           | 사용자 지향 인터페이스 제공으로 신규 스펙 적용에 따른 UX 저해가 없어야 함          |
 
 ## 3. 목표 시스템 구성 (System Context Diagram)
+
 목표 시스템의 구성을 시각화하기 위한 여러 다이어그램 작성 방법론 중 가장 적합한 다이어그램으로서 System Context Diagram을 채택하였다.
 해당 다이어그램은 시스템의 전체적인 맥락을 보여주며, 특히 신규 채택되는 OID4VC 시스템의 역할을 한 눈에 확인할 수 있다. 추가적으로 사용자의 역할과 외부 시스템과의 관계 또한 용이하게 파악할 수 있다.
 
 ### 3.1 VC 발급
+
 ![SYSTEM_CONTEXT_DIAGRAM_OID4VCI](./system_context_diagram_oid4vci.png)
 목표 시스템 구성에 있어서 VC 발급 관점에서의 Context Diagram은 아래와 같은 상호 작용을 포함한다.
 
@@ -66,6 +107,7 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 - **F. VC 응답 (Protected Resource)** : Issuer는 요청된 Credential을 검증한 후 Verifiable Credentials을 Wallet에 반환한다.
 
 ### 3.2 VP 제출
+
 ![SYSTEM_CONTEXT_DIAGRAM_OID4VP](./system_context_diagram_oid4vp.png)
 목표 시스템 구성에 있어서 VP 제출 관점에서의 Context Diagram은 아래와 같은 상호 작용을 포함한다.
 
@@ -75,11 +117,17 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 - **D. VP 제출 (VP Token)** : Holder가 동의하면 Wallet은 Verifier가 요구한 항목을 충족하는 Verifiable Presentations를 생성하여 제출한다. 해당 데이터는 VP Token의 형태로서 OID4VP 프로토콜에 따라 서명되고 암호화된 형태로 안전하게 전달된다.
 
 ## 4. OID4VC 분석 결과
+
 ### 4.1 OID4VCI
+
 OID4VCI(OpenID for Verifiable Credential Issuance)는 OAuth 2.0 기반의 표준화된 방식으로 VC를 발급받을 수 있도록 정의한 프로토콜로써 Wallet은 OAuth 클라이언트로 동작하며, Credential Issuer와 Authorization Server를 통해 VC를 안전하게 수령한다.
 이 표준은 다양한 포맷과 발급 흐름을 지원하여 상호운용성과 보안을 모두 고려한다.
-### 4.1.1 ODI4VCI 개요
-#### 4.1.1.1 OAuth 2.0 적용 범위
+
+#### 4.1.1 OID4VCI 개요
+
+사용자가 목차 뎁스와 #의 개수를 맞추라고 했는데, 여기서 4.1.1은 4.1의 하위 항목이므로 ####이어야 한다. 그런데 ####로 되어 있다. 하지만 다시 확인해보니, 4.1.1은 ###으로 되어 있었다. 이것을 ####로 바꿔야 한다.
+
+##### 4.1.1.1 OAuth 2.0 적용 범위
 
 OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링한다.
 - **Wallet**: OAuth 2.0의 `Client` 역할을 수행한다.
@@ -87,7 +135,7 @@ OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링한다.
 - **Credential Issuer**: VC를 발급하는 주체로, `Resource Server`의 역할을 한다.
 - **Authorization Server**: 사용자의 인증 및 동의를 처리하고 접근 토큰을 발급하는 `Authorization Server`이며, Credential Issuer가 이 역할을 겸할 수 있다.
 
-#### 4.1.1.2 Authorization Code Flow vs. Pre-Authorized Code Flow
+##### 4.1.1.2 Authorization Code Flow vs. Pre-Authorized Code Flow
 
 OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리오에 대응한다.
 
@@ -98,10 +146,10 @@ OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리�
 - **Pre-Authorized Code Flow**: 사용자가 이미 다른 채널(예: 이메일, SMS, 오프라인)을 통해 인증 및 동의를 완료했다고 가정하는 흐름으로, Wallet은 `Credential Offer`에 포함된 `pre-authorized_code`를 사용하여 즉시 토큰을 발급받으며, 사용자 리다이렉션 과정이 생략되어 UX가 간소화된다.
 
 ![Pre-Authorized Code Flow](./oid4vci_pre_authorized_code_flow.svg)
----
+
 <br>
 
-### 4.1.2 OID4VCI Endpoint
+#### 4.1.2 OID4VCI Endpoint
 
 OID4VCI에서는 Verifiable Credential 발급을 위해 여러 개의 Endpoint가 정의된다.
 Credential Offer, Authorization, Token, Credential Endpoint는 기본 흐름을 구성하며,
@@ -123,10 +171,10 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
 
 * Credential Issuer Metadata 필드는 없지만, 표준 경로를 따라 조회하는 방식이다.
 (RFC 8615 + OIDC4VCI 사양 11.2절 기반) URL 뒤에 /.well-known/openid-credential-issuer를 붙여서 접근한다.
+
 <br>
 
-
-#### 4.1.2.1 Credential Offer Endpoint
+##### 4.1.2.1 Credential Offer Endpoint
 
 -   **개념:** Issuer가 Wallet에게 특정 Credential의 발급을 제안하기 위해 사용하는 시작점. 이 제안은 QR 코드, 링크 등 다양한 방식으로 전달될 수 있으며, Wallet이 발급 절차를 개시하는 데 필요한 정보를 담고 있다.
 -   **전달 방식:**
@@ -175,7 +223,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-#### 4.1.2.2 Credential Issuer Metadata Endpoint
+##### 4.1.2.2 Credential Issuer Metadata Endpoint
 
 -   **개념:** Wallet이 Credential Issuer의 설정을 동적으로 발견하기 위해 사용하는 Endpoint. Issuer가 지원하는 자격증명 종류, 암호화 방식, Endpoint URL 등 VC 발급에 필요한 모든 정보를 제공한다.
 -   **Endpoint:** `/.well-known/openid-credential-issuer`
@@ -220,7 +268,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-#### 4.1.2.3 Authorization Endpoint
+##### 4.1.2.3 Authorization Endpoint
 
 -   **개념:** 표준 OAuth 2.0의 일부로, Wallet(Client)이 사용자의 동의를 얻어 Credential 발급에 대한 권한을 부여받는 Endpoint
 -   **요청 방식:**
@@ -244,7 +292,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     Location: https://wallet.example.org/cb?code=Splx10BeZQQYbYS6WxSbIA&state=...
     ```
 
-#### 4.1.2.4 Token Endpoint
+##### 4.1.2.4 Token Endpoint
 
 -   **개념:** 표준 OAuth 2.0의 일부로, Wallet이 `code` (Authorization Code 또는 Pre-Authorized Code)를 Access Token으로 교환하는 Endpoint
 -   **요청 (Request) - Authorization Code 사용 예시:**
@@ -277,7 +325,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-#### 4.1.2.5 Nonce Endpoint
+##### 4.1.2.5 Nonce Endpoint
 
 -   **개념:** (선택 사항) Credential Request의 `proofs` 파라미터에 사용될 `c_nonce` 값을 얻기 위한 Endpoint. 이는 Replay 공격을 방지하는 데 중요한 역할을 한다.
 -   **요청 (Request):**
@@ -298,7 +346,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-#### 4.1.2.6 Credential Endpoint
+##### 4.1.2.6 Credential Endpoint
 
 -   **개념:** Wallet이 Access Token을 사용하여 실제 Credential 발급을 요청하는 핵심 Endpoint
 -   **요청 (Request):**
@@ -337,7 +385,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-#### 4.1.2.7 Deferred Credential Endpoint
+##### 4.1.2.7 Deferred Credential Endpoint
 
 -   **개념:** (선택 사항) Credential Endpoint에서 `transaction_id`를 받은 경우, Wallet이 주기적으로 Credential 발급 완료 여부를 확인하고 최종적으로 Credential을 수령하기 위해 사용하는 Endpoint
 -   **요청 (Request):**
@@ -354,7 +402,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     -   **발급 완료:** HTTP `200 OK`와 함께 Credential 정보를 반환한다.
     -   **아직 대기 중:** HTTP `202 Accepted`와 함께 다음 요청까지 대기할 시간을 `interval` 파라미터로 다시 반환한다.
 
-#### 4.1.2.8 Notification Endpoint
+##### 4.1.2.8 Notification Endpoint
 
 -   **개념:** (선택 사항) Wallet이 Credential의 수신 상태(성공, 실패, 삭제 등)를 Issuer에게 알리기 위해 사용하는 Endpoint
 -   **요청 (Request):**
@@ -371,11 +419,9 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
 -   **응답 (Response):**
     -   성공적으로 알림을 수신하면 HTTP `204 No Content`를 반환하는 것이 권장된다.
 
----
-
 <br>
 
-### 4.1.3 OID4VCI Issuer Metadata
+#### 4.1.3 OID4VCI Issuer Metadata
 
 발급자 메타데이터는 OID4VCI의 동적 상호운용성을 가능하게 하는 핵심 요소이다. Wallet은 이 정보를 통해 발급자의 정책과 기술 사양을 파악하고 그에 맞춰 동작한다.
 
@@ -438,11 +484,9 @@ Content-Type: application/json
 }
 ```
 
----
+#### 4.1.4 고려사항
 
-### 4.1.4 고려사항
-
-#### 4.1.4.1 보안 고려사항 (Security Considerations)
+##### 4.1.4.1 보안 고려사항 (Security Considerations)
 
 - **소유자 증명 (Holder Binding)**: `Credential Request`의 `proof` 파라미터는 VC가 정당한 소유자에게 발급되도록 보장함. Holder의 개인키로 서명된 증명을 통해 발급자는 요청자가 VC에 포함될 공개키의 소유자임을 확인한다.
 - **재전송 공격 방지**: `c_nonce`는 토큰과 VC 요청을 한 번의 트랜잭션으로 묶어 재전송 공격을 방지함. 토큰 발급 시 받은 `c_nonce`는 VC 요청 `proof`에 포함되어야 하며, 한 번 사용된 `c_nonce`는 다시 사용할 수 없다.
@@ -450,7 +494,7 @@ Content-Type: application/json
 - **전송 계층 보안**: 모든 통신은 TLS(Transport Layer Security)로 암호화되어야 한다.
 - **Credential Offer 보안**: `Credential Offer` 자체는 서명되지 않은 정보이므로, Wallet은 Offer의 `credential_issuer` 정보를 신뢰하지 않고, 해당 URL의 메타데이터 엔드포인트(`.well-known`)를 직접 조회하여 발급자를 검증해야 한다.
 
-#### 4.1.4.2 구현 고려사항 (Implementation Considerations)
+##### 4.1.4.2 구현 고려사항 (Implementation Considerations)
 
 -   **자격 증명 바인딩**: VC 소유자에게 VC를 바인딩하는 방법으로 클레임 기반 바인딩(암호화 키 없이 클레임으로 소유 확인)과 베어러 자격 증명(소유 증명 없이 제시)이 있다.
 -   **자격 증명 엔드포인트 접근**: 동일한 액세스 토큰으로 여러 번 접근 가능하며, 발급자는 갱신 여부 및 재인증 필요성을 결정한다.
@@ -458,7 +502,7 @@ Content-Type: application/json
 -   **자격 증명 갱신**: Wallet은 유효한 액세스/갱신 토큰으로 VC를 업데이트하거나, 발급자가 재발급 프로세스를 시작하여 VC를 갱신할 수 있다.
 -   **사양 의존성**: 현재 최종 사양이 아닌 여러 사양(OpenID Federation, SD-JWT VC 등)에 의존하고 있음을 인지해야 한다. (draft) 
 
-#### 4.1.4.3 개인 정보 보호 고려사항 (Privacy Considerations)
+##### 4.1.4.3 개인 정보 보호 고려사항 (Privacy Considerations)
 
 -   **원칙 준수**: [RFC9396] 및 [ISO.29100]의 개인 정보 보호 원칙을 준수해야 한다.
 -   **사용자 동의**: VC 발급 전 최종 사용자에게 정보 포함 내용 및 목적을 명확히 설명하고 동의를 얻어야 한다.
@@ -468,15 +512,17 @@ Content-Type: application/json
 -   **민감 정보 노출 방지**: 인증 요청 시 민감한 정보를 포함하지 않아야 하며, Wallet 증명 주체는 특정 인스턴스가 아닌 Wallet 유형을 식별하는 값이어야 한다.
 -   **발급자 및 Wallet 식별 정보 보호**: 발급자 식별 정보(URL, 인증서 등)를 통한 최종 사용자 정보 유추를 방지하고, Wallet 식별 정보 유출 방지를 위해 사용자 상호 작용 또는 발급자 신뢰 설정을 요구해야 한다.
 -   **신뢰할 수 없는 Wallet 처리**: Wallet이 민감한 정보를 적절히 처리하도록 발급자는 Wallet을 적절히 인증하고 신뢰할 수 있는 엔터티인지 확인해야 한다.
+
 <br>
 
+### 4.2 OID4VP
 
-## 4.2 OID4VP
 OID4VP(OpenID for Verifiable Presentation)는 사용자가 보유한 Verifiable Credential을 안전하게 제출(Presentation)할 수 있도록 정의한 프로토콜이다.  
 Wallet은 사용자의 동의를 받아 Verifier가 요청한 Verifiable Presentation을 생성하고 제출하며, QR 코드 등을 통해 Cross Device 등 여러 시나리오를 지원한다.  
 이 표준은 OpenID Connect의 요청 객체(request object), nonce, JWT 등을 차용하여 보안성과 상호운용성을 확보한다.
 
-### 4.2.1 OID4VP 개요
+#### 4.2.1 OID4VP 개요
+
 OID4VP는 VP 제출 과정에서 OpenID Connect의 일부 개념을 활용하여 상호운용성과 보안 모델을 구성한다. OID4VP는 OpenID Connect의 구조적 요소들을 활용하지만, OAuth 2.0의 인증/인가 플로우와는 본질적으로 독립적이다.
 
 - **Wallet**: Verifiable Credential을 보유하고, Verifier의 요청에 따라 Presentation을 생성하는 주체로서 OpenID의 Relying Party 또는 RP Client로 간주될 수 있음  
@@ -484,7 +530,7 @@ OID4VP는 VP 제출 과정에서 OpenID Connect의 일부 개념을 활용하여
 - **Verifier**: VP를 요청하고 검증하는 주체로, OpenID Connect에서 Request Object를 생성하는 Entity 역할을 수행  
 - **OIDC 구성 요소 활용**: OAuth 2.0의 Authorization Code Flow는 사용되지 않으며, 대신 `request_uri`, `request` 파라미터, `nonce`, `id_token` 등의 OIDC 요소가 적용됨
 
-### 4.2.2 Cross Device Flow vs. Same Device Flow
+#### 4.2.2 Cross Device Flow vs. Same Device Flow
 
 OID4VP는 두 가지 주요 제출 흐름(Credential Presentation Flow)을 지원하여 다양한 사용자 환경과 디바이스 상황에 대응한다.
 
@@ -502,11 +548,11 @@ OID4VP는 두 가지 주요 제출 흐름(Credential Presentation Flow)을 지�
 
   ![Same_Device Flow](./oid4vp_same_device_flow.svg)
 
-### 4.2.3 OID4VP Redirect 기반 요청-응답 구조
+#### 4.2.3 OID4VP Redirect 기반 요청-응답 구조
 
 OID4VP는 Verifier가 사용자에게 요청한 Verifiable Credential(VC)을, Wallet을 통해 Verifiable Presentation(VP)으로 제출받는 구조를 정의한다. 이 과정은 OAuth 2.0 및 OpenID Connect의 redirect 구조를 활용하며, 사용자는 요청 URI를 통해 Wallet을 실행하고, VP를 생성하여 Verifier에 제출한다.
 
-#### 4.2.3.1 OID4VCI와 다르게 OID4VP에 고정된 endpoint 개념이 없는 이유
+##### 4.2.3.1 OID4VCI와 다르게 OID4VP에 고정된 endpoint 개념이 없는 이유
 
 OID4VCI는 Credential을 발급하는 Issuer가 고정된 서비스 주체이므로, `/credential_offer` 등과 같은 고정된 endpoint를 사용해 클라이언트가 일관되게 접근할 수 있도록 설계된다. 반면, OID4VP에서의 Verifier는 인증 요청을 동적으로 생성하는 주체이며, 상황에 따라 Presentation Definition, response\_uri 등을 바꾸는 유연성이 필요하다. 이로 인해 OID4VP에서는 별도의 고정 endpoint 개념 없이 `request_uri`를 통해 요청 정보를 전달하고, 이를 Wallet이 해석해 응답하는 방식으로 동작한다.
 
@@ -520,7 +566,7 @@ OID4VCI는 Credential을 발급하는 Issuer가 고정된 서비스 주체이므
 | 요청 구조       | OAuth2 Authorization Flow | redirect 기반 구조       |
 | 설계 특징       | 안정적인 엔드포인트 설계 | 유연한 요청 설계      |
 
-#### 4.2.3.2 OID4VP redirect 구성요소 설명
+##### 4.2.3.2 OID4VP redirect 구성요소 설명
 
 | 파라미터            | 설명                                    | 필수 여부 |
 | --------------- | ------------------------------------- | ----- |
@@ -542,7 +588,7 @@ openid-vp://?client_id=https%3A%2F%2Fverifier.example.com%2Fcb
 &nonce=abc456
 ```
 
-#### 4.2.3.3 request\_uri를 호출할 시 응답할 uri를 얻는 예제
+##### 4.2.3.3 request_uri를 호출할 시 응답할 uri를 얻는 예제
 
 request\_uri는 Verifier가 사전에 생성한 Presentation 요청이 포함된 리소스이다. Wallet은 이 URI를 호출하여, 요청의 상세 내용과 응답할 URI를 확인한다. 일반적으로는 `response_uri`가 명시되지만, 생략된 경우에는 `client_id`를 응답용 URI로 사용한다. 즉, 두 값 중 우선순위는 `response_uri`가 있으면 우선 사용되고, 없을 경우 fallback으로 `client_id`가 사용된다.
 
@@ -570,15 +616,16 @@ GET https://verifier.example.com/request.jwt
 
 Wallet은 위 정보를 참고하여 VP를 생성한 후 `response_uri`가 있다면 해당 URI로, 없다면 `client_id`를 응답 주소로 사용한다.
 
-### 4.2.4 OID4VP Verifier Metadata
+#### 4.2.4 OID4VP Verifier Metadata
 
 Verifier Metadata는 Verifier가 자신의 서비스 정보를 Wallet에 제공하기 위한 구조화된 정보 집합이다. Issuer가 Credential Issuance 시 .well-known/openid-credential-issuer를 통해 메타데이터를 제공하는 것과 유사하게, Verifier도 자신의 Presentation 요청 형식, 지원하는 Credential 형식 등을 기술할 수 있다.
 
-#### 4.2.4.1 OID4VCI의 Issuer의 .well-known처럼 OID4VP에서는 고정 경로로 획득되지 않는 이유
+##### 4.2.4.1 OID4VCI의 Issuer의 .well-known처럼 OID4VP에서는 고정 경로로 획득되지 않는 이유
 
 OID4VCI의 Issuer는 안정적인 서비스 제공 주체로서, 고정된 메타데이터 경로를 통해 여러 Wallet이 접근하기를 기대한다. 하지만 Verifier는 동적으로 생성된 Presentation 요청(request\_uri)을 통해 각각의 요청에 맞는 메타데이터를 Wallet에 전달하기 때문에, 고정된 경로가 필요하지 않다. 즉, request\_uri 자체에 필요한 메타데이터를 포함하거나, JWT 내부에 inline으로 전달하는 구조로 충분하다.
 
-#### 4.2.4.2 OID4VP Verifier Metadata 획득 방식
+##### 4.2.4.2 OID4VP Verifier Metadata 획득 방식
+
 OID4VP에서는 Verifier가 정적인 `.well-known` 메타데이터를 제공하기보다는, **각 요청마다 메타데이터를 동적으로 포함하거나 외부 링크로 전달**하는 방식을 따른다. 다음과 같은 방식이 사용된다:
 
 | 방식                 | 설명                                                                                                                                          |
@@ -588,7 +635,7 @@ OID4VP에서는 Verifier가 정적인 `.well-known` 메타데이터를 제공하
 
 이러한 구조는 Verifier가 매 요청마다 다른 Presentation 요구사항을 전달할 수 있도록 하며, Wallet은 메타데이터를 통해 정확한 요청 조건을 파악한 후 Verifiable Presentation을 생성하게 된다.
 
-#### 4.2.4.3 데이터 예제 및 구성요소 설명
+##### 4.2.4.3 데이터 예제 및 구성요소 설명
 
 아래는 Verifier Metadata의 예시 JSON과 그 구성요소 설명이다.
 
@@ -630,11 +677,11 @@ OID4VP에서는 Verifier가 정적인 `.well-known` 메타데이터를 제공하
 
 이러한 메타데이터 구조를 통해 Verifier는 구체적인 요청 조건을 명확히 기술할 수 있으며, Wallet은 이에 맞는 VC를 자동으로 선택하여 안전하게 Presentation을 생성한다.
 
-### 4.2.5 OID4VP DCQL
+#### 4.2.5 OID4VP DCQL
 
 DCQL(Data Credential Query Language)은 Verifier가 Wallet에 요청하고자 하는 Credential의 내용을 보다 명확하고 직관적으로 표현할 수 있도록 설계된 JSON 기반 쿼리 언어이다. Credential의 구조를 그대로 반영하여, 개발자가 쉽게 읽고 작성할 수 있는 장점이 있다.
 
-#### 4.2.5.2 데이터 예제 및 구성요소 설명 (Student ID VC와 mDL VC 중심)
+##### 4.2.5.1 데이터 예제 및 구성요소 설명 (Student ID VC와 mDL VC 중심)
 
 아래는 DCQL을 사용하여 StudentIDCredential과 mDL Credential을 요청하는 예시이다. 실제 Credential에서 사용하는 필드 이름과 구조를 그대로 사용하여 조건을 명시하고 있다.
 
@@ -685,7 +732,7 @@ DCQL(Data Credential Query Language)은 Verifier가 Wallet에 요청하고자 �
 
 DCQL의 쿼리는 실제 제출받고자 하는 VC의 구조와 매우 유사하게 작성되며, 별도의 경로 표기나 필터 구문을 외울 필요 없이 직관적으로 이해하고 활용할 수 있다.
 
-#### 4.2.5.3 동일 요청의 Presentation Exchange v1 표현 비교 예제
+##### 4.2.5.2 동일 요청의 Presentation Exchange v1 표현 비교 예제
 
 **DCQL 예제 요약:**
 
@@ -825,11 +872,11 @@ DCQL의 쿼리는 실제 제출받고자 하는 VC의 구조와 매우 유사하
 * 개발자는 VC를 다루듯이 쿼리를 작성할 수 있어 학습 부담이 적다.
 * 반면, PEx v1은 JSONPath와 필터 문법의 조합을 요구하며, 오류 발생 가능성이 높고 유지보수가 어렵다.
 
-## 4.2.6 OID4VP VP Token
+#### 4.2.6 OID4VP VP Token
 
 VP Token은 Verifiable Presentation을 JWT 형식으로 인코딩한 토큰이며, Verifier에게 안전하고 표준화된 방식으로 VC(Verifiable Credential)를 제출할 수 있도록 한다. OID4VP에서는 JWT 기반의 일반 VP Token뿐만 아니라, OpenID Connect ID Token에 VP를 포함하는 방식(ID Token 기반)도 지원한다.
 
-### 4.2.6.1 JWT 기반 VP Token 데이터 예제 및 구성요소 설명
+##### 4.2.6.1 JWT 기반 VP Token 데이터 예제 및 구성요소 설명
 
 JWT 기반 VP Token은 Presentation을 JWT의 payload로 인코딩한 구조를 가진다. 일반적으로 `vp` 클레임을 사용하여 Presentation을 담고, `nonce`와 `aud` 값을 통해 보안성을 확보한다.
 
@@ -862,7 +909,7 @@ JWT 기반 VP Token은 Presentation을 JWT의 payload로 인코딩한 구조를 
 | `vp`         | Verifiable Presentation 데이터 (JWT 또는 JSON-LD 형태) |
 | `exp`, `iat` | 토큰 유효기간 정보                                      |
 
-### 4.2.6.2 ID Token 기반의 VP Token 데이터 예제 및 구성요소 설명
+##### 4.2.6.2 ID Token 기반의 VP Token 데이터 예제 및 구성요소 설명
 
 OID4VP는 ID Token을 확장하여 VP를 포함하는 방식도 허용한다. 이 방식은 특히 기존 OpenID Connect 인프라와의 통합을 고려한 설계이다.
 
@@ -908,7 +955,7 @@ OID4VP는 ID Token을 확장하여 VP를 포함하는 방식도 허용한다. �
 | `presentation_submission` | 제출된 VC에 대한 매핑 정보 (Presentation Exchange 기반) |
 | `vp`                      | 제출된 Verifiable Presentation                 |
 
-### 4.2.6.3 일반 VP Token과 ID Token 기반 VP Token 비교
+##### 4.2.6.3 일반 VP Token과 ID Token 기반 VP Token 비교
 
 | 구분       | 일반 VP Token      | ID Token 기반 VP Token             |
 | -------- | ---------------- | -------------------------------- |
@@ -917,50 +964,49 @@ OID4VP는 ID Token을 확장하여 VP를 포함하는 방식도 허용한다. �
 | 클레임 위치   | 최상위에 `vp` 클레임    | `vp_token` 확장 클레임 |
 | 사용 목적    | VP 제출 전용         | 로그인 및 VP 제출 통합                   |
 
-### 4.2.7 고려사항
+#### 4.2.7 고려사항
 
 OID4VP(OpenID for Verifiable Presentation)를 구현하거나 운영할 때는 보안, 구현, 개인정보 보호 측면에서의 다양한 고려사항을 충실히 검토해야 한다. OID4VP는 Presentation 요청, 사용자 인증, Cross Device 흐름 등 복합적인 요소를 포함하고 있어 다음과 같은 항목들이 중요하다.
 
-#### 4.2.7.1 보안 고려사항 (Security Considerations)
+##### 4.2.7.1 보안 고려사항 (Security Considerations)
 
 * **Nonce 및 aud 사용**: 요청의 위변조 방지를 위해 요청 객체에 포함된 `nonce`, `aud` 값은 필수적으로 검증해야 하며, 재사용 공격 방지 목적에 활용된다.
 * **요청 객체(request object)의 무결성**: JWT 서명된 요청 객체는 Verifier가 서명해야 하며, Wallet은 요청의 서명을 검증하고 신뢰할 수 있는 발신자인지 확인해야 한다.
 * **Presentation 서명 검증**: Verifiable Presentation 내 VC의 서명뿐 아니라 Presentation 자체의 서명도 검증하여 위변조를 방지해야 한다.
 * **Cross Device 공격 대응**: QR 기반 요청 시 중간자 공격 방지를 위한 endpoint URL 무결성 확인, secure channel 활용 등이 필요하다.
 
-#### 4.2.7.2 구현 고려사항 (Implementation Considerations)
+##### 4.2.7.2 구현 고려사항 (Implementation Considerations)
 
 * **동적 요청 처리**: OID4VP는 요청 객체에 Verifier의 요구사항이 포함되므로 Wallet은 동적으로 해당 요청을 파싱하고 응답할 수 있어야 한다.
 * **동일 기기 / 교차 기기 흐름 대응**: 다양한 UX 시나리오(Cross Device, Same Device)에 대응할 수 있도록, 각각에 맞는 URI 스킴, 딥링크 처리, QR 스캔 로직 등이 필요하다.
 * **Presentation Submission 처리**: Verifier가 요청한 Descriptor Map에 따라 적절한 VC를 대응하여 제출하는 Presentation Exchange 구조를 구현해야 한다.
 * **메타데이터 처리**: Verifier 메타데이터를 통해 요청 형식, 요청 방식, 서명자 정보를 사전에 합의하고 관리할 수 있도록 해야 한다.
 
-#### 4.2.7.3 개인정보 보호 고려사항 (Privacy Considerations)
+##### 4.2.7.3 개인정보 보호 고려사항 (Privacy Considerations)
 
 * **최소 정보 제출 원칙**: Verifier가 요청한 claim만 포함되도록 Presentation을 구성해야 하며, Wallet은 이에 대한 UI/UX를 제공해야 한다.
 * **ZKP 및 Selective Disclosure**: 민감한 정보는 Zero-Knowledge Proof, BBS+ 등 프라이버시 강화 기술을 적용하여 제출하는 것이 바람직하다.
 * **사용자 동의 기반 처리**: 사용자가 어떤 VC와 claim을 어떤 Verifier에게 제공하는지 명확히 인식하고 동의할 수 있도록 안내 및 시각화가 필요하다.
 * **전송 후 저장 정책**: Verifier 측에서 수신한 VC/VP 데이터를 장기 보관하거나 로그에 저장할 경우, 법적·윤리적 문제가 발생할 수 있으므로 명확한 보관 정책이 수립되어야 한다.
 
-
 ### 4.3 SIOPv2
 
-### 4.3.1 개요 및 역할
+#### 4.3.1 개요 및 역할
 
 **SIOPv2 (Self-Issued OpenID Provider v2)** 는 사용자가 자기 자신을 OpenID Provider로 삼아, **중앙 ID 제공자 없이 스스로 인증을 수행하는 분산 신원 인증 모델** 이다.
-
+nnn1
 - 기존의 Google, Facebook 같은 중앙화된 IDP 구조를 대체
 - 사용자가 직접 **ID Token을 생성**하고, 이를 제시함으로써 **자기주권형 신원(Self-Sovereign Identity, SSI)** 실현
 - OpenID Connect(OIDC)의 흐름을 그대로 따르므로 기존 생태계와의 호환성 확보
 
 **핵심 포인트:**
 - 사용자가 직접 서명한 JWT ID Token(DIDAuth와 유사)을 발급
-- DID 기반으로 사용자를 식별 및 검증, OIDC 확장 구조
+- DID 기반으로 사용자를 식별 사용자가 계속해서 나머지 내용을 작성해달라고 요청했습니다. 이전 내용을 계속해서 작성하겠습니다.
+
+및 검증, OIDC 확장 구조
 - VC 발급 요청(OID4VCI) 또는 VC 제시(OID4VP) 시에 인증 주체로 사용됨
 
----
-
-### 4.3.2 **OID4VCI** 에서의 Client Authentication 방식으로 사용
+#### 4.3.2 OID4VCI에서의 Client Authentication 방식으로 사용
 
 OID4VCI에서 사용자는 Credential Issuer에게 VC 발급을 요청한다.  
 이때 Issuer는 요청자의 신원을 확인해야 하며, **Client Authentication** 방식으로 **SIOP 기반 ID Token** (사용자의 식별자 기능)이 활용된다. 
@@ -972,34 +1018,29 @@ OID4VCI에서 사용자는 Credential Issuer에게 VC 발급을 요청한다.
 
 > 기존 `client_secret`, `client_assertion` 방식 대신 사용자가 **직접 서명한 ID Token**을 사용하는 방식
 
----
-
-### 4.3.3 **OID4VP** 에서의 Subject 인증 방식으로 사용
+#### 4.3.3 OID4VP에서의 Subject 인증 방식으로 사용
 
 OID4VP는 사용자가 VC를 제시할 때, Verifier가 **누가 제시했는가** 를 검증해야 한다.
 이때 SIOPv2는 **VC의 제시 주체(Subject)** 인증 수단으로 사용된다.
 
-#### 간략 인증 흐름:
+##### 간략 인증 흐름:
 1. Verifier가 Presentation Request 전송
 2. Wallet이 **SIOPv2 방식의 ID Token** 생성
 3. VP와 함께 Verifier에게 전달
 4. Verifier는 ID Token의 서명을 확인하고, DID를 통해 소유자 식별
 
-
-#### 서비스 이용시 인증 흐름:
+##### 서비스 이용시 인증 흐름:
 <img src="./siop_service_flow.png" alt="SIOP 시퀀스" width="70%">
 
 <img src="./siop_detail_seq.svg" alt="SIOP 시퀀스" width="100%">
 
----
-
-### 4.3.4 ID Token 발급 구조 (JWT + DID)
+#### 4.3.4 ID Token 발급 구조 (JWT + DID)
 
 SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진다:
 
-#### JWT 구성:
+##### JWT 구성:
 
-##### Header
+###### Header
 ```json
 {
   "alg": "ES256K",
@@ -1008,7 +1049,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 }
 ```
 
-##### Payload (예시)
+###### Payload (예시)
 ```json
 {
   "iss": "did:wallet:123",
@@ -1026,29 +1067,25 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 }
 ```
 
-##### Signature
+###### Signature
 - DID Document에 등록된 wallet의 개인키로 서명
 - 공개키는 DID를 통해 검증 가능
 
----
-
-### 4.3.5 SIOP 기반 Wallet의 검증 흐름
+#### 4.3.5 SIOP 기반 Wallet의 검증 흐름
 
 월렛이 인증 주체로 동작할 때, Verifier 또는 Credential Issuer는 월렛이 제시하는 **ID Token의 진위**와 **서명자 식별자(DID)** 를 검증한다.
 
-#### 시퀀스 다이어그램 (OID4VP 기준)
+##### 시퀀스 다이어그램 (OID4VP 기준)
 
 ![SIOP 시퀀스](./siop_simple_seq.svg)
 
-#### 설명 요약:
+##### 설명 요약:
 
 1. **Wallet**은 DID를 기반으로 JWT 서명
 2. **Verifier**는 해당 DID를 resolve 하여 공개키 확보
 3. **JWT의 서명과 Claim 유효성**을 검증하여 사용자의 소유권 확인
 
----
-
-### 정리
+##### 정리
 
 | 항목 | 설명 |
 |------|------|
@@ -1058,24 +1095,19 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 | **ID Token 구조** | JWT 형식, DID 기반 발급자, 서명 포함 |
 | **검증 흐름** | DID → 공개키 → JWT 서명 및 Claim 검증 |
 
-> **SIOPv2는 Self-Sovereign Identity 실현을 위한 핵심 구성요소로, 신뢰 가능한 자기주권형 인증을 구현함.**
+**SIOPv2는 Self-Sovereign Identity 실현을 위한 핵심 구성요소로, 신뢰 가능한 자기주권형 인증을 구현함.**
 
 ## 5. OID4VC 적용 전략
 
-11
-11
-11
-11
-11
-11
-11
-
+> 내용이 준비 중입니다.
 
 ## 6. 부록
+
 ### 6.1 개요
+
 본 부록에서는 OID4VC에서 사용되는 JSON 기반 보안 구조인 JWT, JWS, JWE, JWK에 대해 핵심 개념, 구조, 필드의 의미, 활용 방식 등을 간략히 정리함.
 
-### 6.1.1 JWT (JSON Web Token)
+#### 6.1.1 JWT (JSON Web Token)
 
 - **정의**: 클레임(claim)을 JSON 형식으로 표현하여 전송하는 구조화된 토큰
 - **보안 적용**: JWS로 서명하거나, JWE로 암호화됨
@@ -1089,8 +1121,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 
 - **용도**: 액세스 토큰, VP, VC에 사용될 수 있음
 
-
-### 6.1.2 JWS (JSON Web Signature)
+#### 6.1.2 JWS (JSON Web Signature)
 
 - **정의**: JSON 객체에 대해 디지털 서명(MAC 포함)을 적용해 무결성을 보장하는 구조
 - **형식**: `Base64Url(header).Base64Url(payload).Base64Url(signature)`
@@ -1100,11 +1131,11 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
    | ----- | ---------------------------------- |
    | `alg` | 서명 알고리즘 (예: ES256, RS256)          |
    | `typ` | 일반적으로 `JWT` 사용                     |
-   | `kid` | 사용된 키의 식별자 (JWK 또는 jwks\_uri와 매칭됨) |
+   | `kid` | 사용된 키의 식별자 (JWK 또는 jwks_uri와 매칭됨) |
 
 - **용도**: JWT 서명, VC/VP의 서명 보호
 
-### 6.1.3 JWE (JSON Web Encryption)
+#### 6.1.3 JWE (JSON Web Encryption)
 
 - **정의**: JSON 객체를 암호화하여 기밀성을 보장하는 구조
 - **형식**: `protectedHeader.encryptedKey.iv.ciphertext.tag`
@@ -1117,9 +1148,9 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
   | `ciphertext`      | 암호화된 페이로드                         |
   | `tag`             | 무결성 검증을 위한 인증 태그 (AEAD에서 생성됨)     |
 
-- **용도**: 암호화된 VC 전달, enc\_vc 등
+- **용도**: 암호화된 VC 전달, enc_vc 등
 
-### 6.1.4 JWK (JSON Web Key)
+#### 6.1.4 JWK (JSON Web Key)
 
 - **정의**: 공개키 또는 비밀키를 JSON 형식으로 표현한 구조 (RFC 7517)
 - **용도**: JWS 서명 검증, JWE 암호화/복호화 키 공유 등
@@ -1147,6 +1178,6 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
     | `use`    | 키 용도 (`sig`: 서명, `enc`: 암호화) |
     | `kid`    | 키 식별자 (JWS/JWE의 `kid`와 매칭)   |
 
-<br>
+##### 6.1.4.1 JWK Key 전달 및 검증
 
-### 6.1.4.1 JWK Key 전달 및 검증
+> 내용이 준비 중입니다.
