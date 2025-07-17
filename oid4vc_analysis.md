@@ -52,7 +52,7 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 - **(상호운용성 개선)** : EUDIW(EU Digital Identity Wallet) 등과의 호환성 확보
 - **(개방형 표준 준수)** : OpenID 및 OAuth 2.0 등 개방형 표준 프로토콜 기반 규격화
 - **(기술부채 해결)** : Server Token 등 기존 Legacy 고도화
-![OID4VC](./goals.png)
+![OID4VC](./images/goals.png)
 
 ## 2. 요구사항 도출
 
@@ -96,7 +96,7 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 
 ### 3.1 VC 발급
 
-![SYSTEM_CONTEXT_DIAGRAM_OID4VCI](./system_context_diagram_oid4vci.png)
+![SYSTEM_CONTEXT_DIAGRAM_OID4VCI](./images/system_context_diagram_oid4vci.png)
 목표 시스템 구성에 있어서 VC 발급 관점에서의 Context Diagram은 아래와 같은 상호 작용을 포함한다.
 
 - **A. Authorization Request** : Holder가 Resource Owner로서 발급에 동의하기 위해 Wallet이 Authorization Request를 보낸다. 일반적으로 Authorization Code Flow가 사용된다.
@@ -108,7 +108,7 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 
 ### 3.2 VP 제출
 
-![SYSTEM_CONTEXT_DIAGRAM_OID4VP](./system_context_diagram_oid4vp.png)
+![SYSTEM_CONTEXT_DIAGRAM_OID4VP](./images/system_context_diagram_oid4vp.png)
 목표 시스템 구성에 있어서 VP 제출 관점에서의 Context Diagram은 아래와 같은 상호 작용을 포함한다.
 
 - **A. Interacts** : Holder는 웹 브라우저 등을 통해 Verifier와 상호작용한다. 이때 Verifier는 VP 제출을 요구하며 해당 Authorization Request를 담은 QR 코드 등을 생성한다.
@@ -141,11 +141,11 @@ OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리�
 
 - **Authorization Code Flow**: 사용자의 명시적인 인증과 동의가 필요한 전통적인 웹 기반 흐름으로, Wallet은 사용자를 Authorization Server로 리다이렉션하여 로그인 및 동의 절차를 거친 후, 발급에 필요한 토큰을 받는다.
 
-![Authorization Code Flow](./oid4vci_authorization_code_flow.svg)
+![Authorization Code Flow](./images/oid4vci_authorization_code_flow.svg)
 
 - **Pre-Authorized Code Flow**: 사용자가 이미 다른 채널(예: 이메일, SMS, 오프라인)을 통해 인증 및 동의를 완료했다고 가정하는 흐름으로, Wallet은 `Credential Offer`에 포함된 `pre-authorized_code`를 사용하여 즉시 토큰을 발급받으며, 사용자 리다이렉션 과정이 생략되어 UX가 간소화된다.
 
-![Pre-Authorized Code Flow](./oid4vci_pre_authorized_code_flow.svg)
+![Pre-Authorized Code Flow](./images/oid4vci_pre_authorized_code_flow.svg)
 
 <br>
 
@@ -157,7 +157,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
 
 아래는 각 endpoint에 대한 발급 흐름을 도식화하였다.
 
-![Endpoint Flow](./oid4vc_endpoint_flow.png)
+![Endpoint Flow](./images/oid4vc_endpoint_flow.png)
 
 | Endpoint                     | 설명                                               | 비고                            |
 |-----------------------------|----------------------------------------------------|---------------------------------|
@@ -539,14 +539,14 @@ OID4VP는 두 가지 주요 제출 흐름(Credential Presentation Flow)을 지�
   Verifier는 Authorization Request를 QR 코드 등의 형태로 사용자에게 제공하며, 사용자는 이를 모바일 Wallet으로 스캔 등을 하여 VP를 생성하고 제출한다.  
   이 방식은 보안성과 사용자 편의성을 모두 고려하여, 웹 브라우저 기반 서비스와 모바일 지갑 간 상호작용이 가능하도록 설계되어 있다.
 
-  ![Cross_Device Flow](./oid4vp_cross_device_flow.svg)
+  ![Cross_Device Flow](./images/oid4vp_cross_device_flow.svg)
 
 - **Same Device Flow**:  
   사용자가 Verifier와 Wallet을 `동일한 디바이스(예: 모바일 브라우저 + Wallet 앱 또는 통합 앱)`에서 사용하는 방식이다.  
   일반적으로 앱 간 전환(deep-linking)이나 인앱 웹뷰 등을 통해 Authorization Request를 전달하고, 사용자는 인증 및 동의 후 직접 Wallet에서 VP를 생성하여 Verifier에 제출한다.  
   이 방식은 Cross Device에 비해 UX 흐름이 간단하며, 관련된 환경 구성이 가능하다면 사용자 경험이 향상될 수 있도록 설계되어 있다.
 
-  ![Same_Device Flow](./oid4vp_same_device_flow.svg)
+  ![Same_Device Flow](./images/oid4vp_same_device_flow.svg)
 
 #### 4.2.3 OID4VP Redirect 기반 요청-응답 구조
 
@@ -1030,9 +1030,9 @@ OID4VP는 사용자가 VC를 제시할 때, Verifier가 **누가 제시했는가
 4. Verifier는 ID Token의 서명을 확인하고, DID를 통해 소유자 식별
 
 ##### 서비스 이용시 인증 흐름:
-<img src="./siop_service_flow.png" alt="SIOP 시퀀스" width="70%">
+<img src="./images/siop_service_flow.png" alt="SIOP 시퀀스" width="70%">
 
-<img src="./siop_detail_seq.svg" alt="SIOP 시퀀스" width="100%">
+<img src="./images/siop_detail_seq.svg" alt="SIOP 시퀀스" width="100%">
 
 #### 4.3.4 ID Token 발급 구조 (JWT + DID)
 
@@ -1077,7 +1077,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 
 ##### 시퀀스 다이어그램 (OID4VP 기준)
 
-![SIOP 시퀀스](./siop_simple_seq.svg)
+![SIOP 시퀀스](./images/siop_simple_seq.svg)
 
 ##### 설명 요약:
 
