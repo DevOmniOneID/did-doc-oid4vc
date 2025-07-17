@@ -481,12 +481,42 @@ Content-Type: application/json
 <br>
 
 
-### 4.3 OID4VP // 아래 세부 목차는 자유롭게 바꾸셔도 됩니다.
-### 4.3.1 Verifier Request Object 처리
-### 4.3.2 DCQL 쿼리 처리 및 VP 구성
-### 4.3.3 Response Mode 유형 및 처리 방식
-### 4.3.4 VP Token 생성 및 서명
-### 4.3.5 제출 흐름별 UX 설계 (Cross / Same Device)
+### 4.3 OID4VP
+### 4.3 OID4VP
+OID4VP(OpenID for Verifiable Presentation)는 OpenID Connect 개념을 일부 차용하여 사용자가 보유한 Verifiable Credential을 안전하게 제출(Presentation)할 수 있도록 정의한 프로토콜이다.  
+Wallet은 사용자의 동의를 받아 Verifier가 요청한 Verifiable Presentation을 생성하고 제출하며, QR 코드 등을 통해 Cross Device 등 여러 시나리오를 지원한다.  
+이 표준은 OAuth 2.0의 플로우를 직접적으로 사용하지 않지만, OpenID Connect의 요청 객체(request object), nonce, JWT 등을 차용하여 보안성과 상호운용성을 확보한다.
+
+### 4.3.1 OID4VP 개요
+#### 4.3.1.1 OIDC 적용 범위  
+OID4VP는 VP 제출 과정에서 OpenID Connect의 일부 개념을 활용하여 상호운용성과 보안 모델을 구성한다. OID4VP는 OpenID Connect의 구조적 요소들을 활용하지만, OAuth 2.0의 인증/인가 플로우와는 본질적으로 독립적이다.
+
+- **Wallet**: Verifiable Credential을 보유하고, Verifier의 요청에 따라 Presentation을 생성하는 주체로서 OpenID의 Relying Party 또는 RP Client로 간주될 수 있음  
+- **사용자 (Holder / End-User)**: 자신의 VC 사용에 대한 동의를 제공하며, VP 생성 시 인증 또는 승인 절차에 참여하는 Resource Owner에 해당  
+- **Verifier**: VP를 요청하고 검증하는 주체로, OpenID Connect에서 Request Object를 생성하는 Entity 역할을 수행  
+- **OIDC 구성 요소 활용**: OAuth 2.0의 Authorization Code Flow는 사용되지 않으며, 대신 `request_uri`, `request` 파라미터, `nonce`, `id_token` 등의 OIDC 요소가 적용됨
+
+### 4.3.1.2 Cross Device Flow vs. Same Device Flow
+
+OID4VP는 두 가지 주요 제출 흐름(Credential Presentation Flow)을 지원하여 다양한 사용자 환경과 디바이스 상황에 대응한다.
+
+- **Cross Device Flow**:  
+  사용자가 Verifier의 요청을 `다른 디바이스(Wallet 앱이 설치된 모바일 기기 등)`를 통해 처리하는 방식이다.  
+  Verifier는 Authorization Request를 QR 코드 등의 형태로 사용자에게 제공하며, 사용자는 이를 모바일 Wallet으로 스캔 등을 하여 VP를 생성하고 제출한다.  
+  이 방식은 보안성과 사용자 편의성을 모두 고려하여, 웹 브라우저 기반 서비스와 모바일 지갑 간 상호작용이 가능하도록 설계되어 있다.
+
+  ![Cross_Device Flow](./oid4vp_cross_device_flow.svg)
+
+- **Same Device Flow**:  
+  사용자가 Verifier와 Wallet을 `동일한 디바이스(예: 모바일 브라우저 + Wallet 앱 또는 통합 앱)`에서 사용하는 방식이다.  
+  일반적으로 앱 간 전환(deep-linking)이나 인앱 웹뷰 등을 통해 Authorization Request를 전달하고, 사용자는 인증 및 동의 후 직접 Wallet에서 VP를 생성하여 Verifier에 제출한다.  
+  이 방식은 Cross Device에 비해 UX 흐름이 간단하며, 관련된 환경 구성이 가능하다면 사용자 경험이 향상될 수 있도록 설계되어 있다.
+
+  ![Same_Device Flow](./oid4vp_same_device_flow.svg)
+
+### 4.3.3 작성 예정
+### 4.3.4 작성 예정
+### 4.3.5 작성 예정
 
 ### 4.4 SIOPv2
 
