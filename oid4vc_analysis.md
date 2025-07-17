@@ -67,7 +67,13 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 - **F. VC 응답 (Protected Resource)** : Issuer는 요청된 Credential을 검증한 후 Verifiable Credentials을 Wallet에 반환한다.
 
 ### 3.2 VP 제출
+![SYSTEM_CONTEXT_DIAGRAM_OID4VP](./system_context_diagram_oid4vp.png)
+목표 시스템 구성에 있어서 VP 제출 관점에서의 Context Diagram은 아래와 같은 상호 작용을 포함한다.
 
+- **A. Interacts** : Holder는 웹 브라우저 등을 통해 Verifier와 상호작용한다. 이때 Verifier는 VP 제출을 요구하며 해당 Authorization Request를 담은 QR 코드 등을 생성한다.
+- **B. Authorization Request** : Holder는 해당 QR 코드 등을 Cross Device 환경의 Wallet에서 스캔한다. 이에 따라 Wallet은 Verifier가 제공한 Authorization Request를 수신하고 처리할 준비를 한다.
+- **C. End-User Authentication / Consent** : Wallet은 Holder에게 본인의 VC 사용에 대한 인증 및 동의 절차를 요구한다. PIN 입력 등의 방식으로 Holder의 명시적 동의를 획득한다.
+- **D. VP 제출 (VP Token)** : Holder가 동의하면 Wallet은 Verifier가 요구한 항목을 충족하는 Verifiable Presentations를 생성하여 제출한다. 해당 데이터는 VP Token의 형태로서 OID4VP 프로토콜에 따라 서명되고 암호화된 형태로 안전하게 전달된다.
 
 ## 4. OID4VC 분석 결과
 ### 4.1 공통 요소 // 아래 세부 목차는 자유롭게 바꾸셔도 됩니다.
