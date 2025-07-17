@@ -9,7 +9,6 @@
 | ------- | ---------- | --------------- |
 | v1.0.0  | 2025-07-18 | 최초 작성 |
 
-
 ## 1. 범위 및 목표
 
 OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양한 디지털 월렛과의 연동을 목표로 상호운용성을 개선한다. 또한 OpenID와 OAuth 2.0 등 국제적으로 검증된 개방형 표준 프로토콜을 기반으로 전체 시스템을 구조화 및 고도화한다. 이와 함께 기존 Open DID의 레거시 요소를 정비할 수 있는 기회로 OID4VC를 활용하여 기존의 기술부채를 해소하고 기술적 고도화와 함께 Open DID의 가치를 더욱 향상시키는 것을 목표로 한다.
@@ -80,7 +79,7 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 OID4VCI(OpenID for Verifiable Credential Issuance)는 OAuth 2.0 기반의 표준화된 방식으로 VC를 발급받을 수 있도록 정의한 프로토콜로써 Wallet은 OAuth 클라이언트로 동작하며, Credential Issuer와 Authorization Server를 통해 VC를 안전하게 수령한다.
 이 표준은 다양한 포맷과 발급 흐름을 지원하여 상호운용성과 보안을 모두 고려함
 ### 4.1.1 ODI4VCI 개요
-### 4.1.1.1 OAuth 2.0 적용 범위
+#### 4.1.1.1 OAuth 2.0 적용 범위
 
 OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링함
 - **Wallet**: OAuth 2.0의 `Client` 역할을 수행함
@@ -88,7 +87,7 @@ OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링함
 - **Credential Issuer**: VC를 발급하는 주체로, `Resource Server`의 역할을 함
 - **Authorization Server**: 사용자의 인증 및 동의를 처리하고 접근 토큰을 발급하는 `Authorization Server`이며, Credential Issuer가 이 역할을 겸할 수 있음
 
-### 4.1.1.2 Authorization Code Flow vs. Pre-Authorized Code Flow
+#### 4.1.1.2 Authorization Code Flow vs. Pre-Authorized Code Flow
 
 OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리오에 대응함
 
@@ -100,8 +99,6 @@ OID4VCI는 두 가지 주요 발급 흐름을 지원하여 다양한 시나리�
 
 ![Pre-Authorized Code Flow](./oid4vci_pre_authorized_code_flow.svg)
 ---
-
-- 
 <br>
 
 ### 4.1.2 OID4VCI Endpoint
@@ -129,7 +126,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
 <br>
 
 
-### 4.1.2.1 Credential Offer Endpoint
+#### 4.1.2.1 Credential Offer Endpoint
 
 -   **개념:** Issuer가 Wallet에게 특정 Credential의 발급을 제안하기 위해 사용하는 시작점. 이 제안은 QR 코드, 링크 등 다양한 방식으로 전달될 수 있으며, Wallet이 발급 절차를 개시하는 데 필요한 정보를 담고 있음
 -   **전달 방식:**
@@ -178,7 +175,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-### 4.1.2.2 Credential Issuer Metadata Endpoint
+#### 4.1.2.2 Credential Issuer Metadata Endpoint
 
 -   **개념:** Wallet이 Credential Issuer의 설정을 동적으로 발견하기 위해 사용하는 Endpoint. Issuer가 지원하는 자격증명 종류, 암호화 방식, Endpoint URL 등 VC 발급에 필요한 모든 정보를 제공함
 -   **Endpoint:** `/.well-known/openid-credential-issuer`
@@ -223,7 +220,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-### 4.1.2.3 Authorization Endpoint
+#### 4.1.2.3 Authorization Endpoint
 
 -   **개념:** 표준 OAuth 2.0의 일부로, Wallet(Client)이 사용자의 동의를 얻어 Credential 발급에 대한 권한을 부여받는 Endpoint
 -   **요청 방식:**
@@ -247,7 +244,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     Location: https://wallet.example.org/cb?code=Splx10BeZQQYbYS6WxSbIA&state=...
     ```
 
-### 4.1.2.4 Token Endpoint
+#### 4.1.2.4 Token Endpoint
 
 -   **개념:** 표준 OAuth 2.0의 일부로, Wallet이 `code` (Authorization Code 또는 Pre-Authorized Code)를 Access Token으로 교환하는 Endpoint
 -   **요청 (Request) - Authorization Code 사용 예시:**
@@ -280,7 +277,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-### 4.1.2.5 Nonce Endpoint
+#### 4.1.2.5 Nonce Endpoint
 
 -   **개념:** (선택 사항) Credential Request의 `proofs` 파라미터에 사용될 `c_nonce` 값을 얻기 위한 Endpoint. 이는 Replay 공격을 방지하는 데 중요한 역할을 함
 -   **요청 (Request):**
@@ -301,7 +298,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-### 4.1.2.6 Credential Endpoint
+#### 4.1.2.6 Credential Endpoint
 
 -   **개념:** Wallet이 Access Token을 사용하여 실제 Credential 발급을 요청하는 핵심 Endpoint
 -   **요청 (Request):**
@@ -340,7 +337,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     }
     ```
 
-### 4.1.2.7 Deferred Credential Endpoint
+#### 4.1.2.7 Deferred Credential Endpoint
 
 -   **개념:** (선택 사항) Credential Endpoint에서 `transaction_id`를 받은 경우, Wallet이 주기적으로 Credential 발급 완료 여부를 확인하고 최종적으로 Credential을 수령하기 위해 사용하는 Endpoint
 -   **요청 (Request):**
@@ -357,7 +354,7 @@ Nonce, Deferred Credential, Notification Endpoint는 선택적으로 보안을 �
     -   **발급 완료:** HTTP `200 OK`와 함께 Credential 정보를 반환함
     -   **아직 대기 중:** HTTP `202 Accepted`와 함께 다음 요청까지 대기할 시간을 `interval` 파라미터로 다시 반환함
 
-### 4.1.2.8 Notification Endpoint
+#### 4.1.2.8 Notification Endpoint
 
 -   **개념:** (선택 사항) Wallet이 Credential의 수신 상태(성공, 실패, 삭제 등)를 Issuer에게 알리기 위해 사용하는 Endpoint
 -   **요청 (Request):**
@@ -445,7 +442,7 @@ Content-Type: application/json
 
 ### 4.1.4 고려사항
 
-### 4.1.4.1 보안 고려사항 (Security Considerations)
+#### 4.1.4.1 보안 고려사항 (Security Considerations)
 
 - **소유자 증명 (Holder Binding)**: `Credential Request`의 `proof` 파라미터는 VC가 정당한 소유자에게 발급되도록 보장함. Holder의 개인키로 서명된 증명을 통해 발급자는 요청자가 VC에 포함될 공개키의 소유자임을 확인함
 - **재전송 공격 방지**: `c_nonce`는 토큰과 VC 요청을 한 번의 트랜잭션으로 묶어 재전송 공격을 방지함. 토큰 발급 시 받은 `c_nonce`는 VC 요청 `proof`에 포함되어야 하며, 한 번 사용된 `c_nonce`는 다시 사용할 수 없음
@@ -453,7 +450,7 @@ Content-Type: application/json
 - **전송 계층 보안**: 모든 통신은 TLS(Transport Layer Security)로 암호화되어야 함
 - **Credential Offer 보안**: `Credential Offer` 자체는 서명되지 않은 정보이므로, Wallet은 Offer의 `credential_issuer` 정보를 신뢰하지 않고, 해당 URL의 메타데이터 엔드포인트(`.well-known`)를 직접 조회하여 발급자를 검증해야 함
 
-### 4.1.4.2 구현 고려사항 (Implementation Considerations)
+#### 4.1.4.2 구현 고려사항 (Implementation Considerations)
 
 -   **자격 증명 바인딩**: VC 소유자에게 VC를 바인딩하는 방법으로 클레임 기반 바인딩(암호화 키 없이 클레임으로 소유 확인)과 베어러 자격 증명(소유 증명 없이 제시)이 있음
 -   **자격 증명 엔드포인트 접근**: 동일한 액세스 토큰으로 여러 번 접근 가능하며, 발급자는 갱신 여부 및 재인증 필요성을 결정함
@@ -461,7 +458,7 @@ Content-Type: application/json
 -   **자격 증명 갱신**: Wallet은 유효한 액세스/갱신 토큰으로 VC를 업데이트하거나, 발급자가 재발급 프로세스를 시작하여 VC를 갱신할 수 있음
 -   **사양 의존성**: 현재 최종 사양이 아닌 여러 사양(OpenID Federation, SD-JWT VC 등)에 의존하고 있음을 인지해야 함 (draft) 
 
-### 4.1.4.3 개인 정보 보호 고려사항 (Privacy Considerations)
+#### 4.1.4.3 개인 정보 보호 고려사항 (Privacy Considerations)
 
 -   **원칙 준수**: [RFC9396] 및 [ISO.29100]의 개인 정보 보호 원칙을 준수해야 함.
 -   **사용자 동의**: VC 발급 전 최종 사용자에게 정보 포함 내용 및 목적을 명확히 설명하고 동의를 얻어야 함.
@@ -474,7 +471,7 @@ Content-Type: application/json
 <br>
 
 
-### 4.2 OID4VP
+## 4.2 OID4VP
 OID4VP(OpenID for Verifiable Presentation)는 사용자가 보유한 Verifiable Credential을 안전하게 제출(Presentation)할 수 있도록 정의한 프로토콜이다.  
 Wallet은 사용자의 동의를 받아 Verifier가 요청한 Verifiable Presentation을 생성하고 제출하며, QR 코드 등을 통해 Cross Device 등 여러 시나리오를 지원한다.  
 이 표준은 OpenID Connect의 요청 객체(request object), nonce, JWT 등을 차용하여 보안성과 상호운용성을 확보한다.
@@ -675,21 +672,22 @@ DCQL(Data Credential Query Language)은 Verifier가 Wallet에 요청하고자 �
 }
 ```
 
-| 필드                                         | 설명                                                      |
-| ------------------------------------------ | ------------------------------------------------------- |
-| `type`                                     | 쿼리 유형 지정. DCQL에서는 일반적으로 `"QueryByExample"` 사용           |
-| `credentialQuery`                          | 요구하는 Credential 조건 목록                                   |
-| `requiredCredential.type`                  | 원하는 Credential의 타입. VC 내의 `type` 필드 기준                  |
-| `credentialSubject`                        | 제출받고자 하는 VC의 본문 데이터 구조 (`credentialSubject`) 기준으로 조건 명시 |
-| `credentialSubject.enrollmentStatus`       | 현재 재학 상태 여부 (예: `"active"`)                             |
-| `credentialSubject.birthDate.$lt`          | 생년월일이 2005년 1월 1일 이전이어야 함                               |
-| `credentialSubject.documentNumber.$exists` | 해당 필드가 존재해야 함                                           |
-| `issuer`                                   | 신뢰 가능한 Credential 발급자의 DID 명시                           |
+| 필드                                         | 설명                                            |
+| ------------------------------------------ | --------------------------------------------- |
+| `type`                                     | 쿼리 유형 지정. DCQL에서는 일반적으로 `"QueryByExample"` 사용 |
+| `credentialQuery`                          | 요구하는 Credential 조건 목록                         |
+| `requiredCredential.type`                  | 원하는 Credential의 타입. VC 내의 `type` 필드 기준        |
+| `credentialSubject`                        | 제출받고자 하는 VC의 본문 데이터 구조 기준으로 claim 조건 명시       |
+| `credentialSubject.enrollmentStatus`       | 현재 재학 상태 여부 (예: `"active"`)                   |
+| `credentialSubject.birthDate.$lt`          | 생년월일이 2005년 1월 1일 이전이어야 함                     |
+| `credentialSubject.documentNumber.$exists` | 해당 필드가 존재해야 함                                 |
+| `issuer`                                   | 신뢰 가능한 Credential 발급자의 DID 명시                 |
 
-DCQL의 쿼리는 실제 제출받고자 하는 VC의 구조와 매우 유사하게 작성되며, 별도의 경로 표기나 필터 구문을 외워야 하지 않기 때문에 개발자가 빠르게 이해하고 활용할 수 있다.
+DCQL의 쿼리는 실제 제출받고자 하는 VC의 구조와 매우 유사하게 작성되며, 별도의 경로 표기나 필터 구문을 외울 필요 없이 직관적으로 이해하고 활용할 수 있다.
 
-### 4.2.5.3 동일 요청의 Presentation Exchange v1 표현 비교 예제
-#### DCQL 예제 요약
+#### 4.2.5.3 동일 요청의 Presentation Exchange v1 표현 비교 예제
+
+**DCQL 예제 요약:**
 
 * **StudentIDCredential**
 
@@ -703,7 +701,7 @@ DCQL의 쿼리는 실제 제출받고자 하는 VC의 구조와 매우 유사하
   * `birthDate`가 `"2005-01-01"` 이전
   * `documentNumber` 필드가 존재해야 함
 
-#### DCQL 기반 요청 예시
+**DCQL 기반 요청 예시:**
 
 ```json
 {
@@ -739,7 +737,7 @@ DCQL의 쿼리는 실제 제출받고자 하는 VC의 구조와 매우 유사하
 }
 ```
 
-#### 동일 요청의 Presentation Exchange v1 표현 예시
+**동일 요청의 Presentation Exchange v1 표현 예시:**
 
 ```json
 {
@@ -812,24 +810,137 @@ DCQL의 쿼리는 실제 제출받고자 하는 VC의 구조와 매우 유사하
 }
 ```
 
----
+**구성요소 비교:**
 
-#### 구성요소 비교
+| 항목         | DCQL 예제                                   | PEx v1 예제                                                      |
+| ---------- | ----------------------------------------- | -------------------------------------------------------------- |
+| VC Type 지정 | `type: ["StudentIDCredential"]`           | `schema.uri: "https://example.org/schema/StudentIDCredential"` |
+| 필드 조건 표현   | Credential 구조 그대로 (`credentialSubject.*`) | JSONPath 기반 (`$.credentialSubject.*`)                          |
+| 값 조건       | 직접 값 지정 (예: `"active"`, `true`)           | `filter.const` 등 필터 명령어를 통해 값 지정                               |
+| 필드 존재 조건   | `$exists: true`로 명시                       | `filter.type` 명시 또는 암시적 표현 (불명확)                               |
+| 날짜 조건 표현   | `$lt: "2005-01-01"`                       | `formatMaximum: "2005-01-01"` 사용                               |
+| 구조 직관성     | 높음 (Credential 구조와 동일하게 기술됨)              | 낮음 (구조와 조건이 분리됨)                                               |
 
-| 항목         | DCQL 예제                             | PEx v1 예제                                                      |
-| ---------- | ----------------------------------- | -------------------------------------------------------------- |
-| VC Type 지정 | `type: ["StudentIDCredential"]`     | `schema.uri: "https://example.org/schema/StudentIDCredential"` |
-| 필드 조건 표현   | JSON 구조 그대로 (`credentialSubject.*`) | JSONPath 기반 (`$.credentialSubject.*`)                          |
-| 값 조건       | 값 그대로 명시 (예: `"active"`)            | `filter.const` 등으로 조건 표현                                       |
-| 필드 존재 여부   | `$exists: true`                     | 필터 내 `type` 지정 또는 `required: true` 추론                          |
-| 날짜 비교      | `$lt: "2005-01-01"`                 | `formatMaximum: "2005-01-01"` 사용                               |
-| 구조 직관성     | 높음 (VC 구조를 그대로 반영)                  | 낮음 (구조와 필터가 분리됨)                                               |
+* DCQL은 Credential 구조를 그대로 활용하기 때문에 claim 단위 필터링이 직관적이다.
+* 개발자는 VC를 다루듯이 쿼리를 작성할 수 있어 학습 부담이 적다.
+* 반면, PEx v1은 JSONPath와 필터 문법의 조합을 요구하며, 오류 발생 가능성이 높고 유지보수가 어렵다.
 
-* **DCQL**은 Credential 구조를 그대로 반영하므로 **작성 및 해석이 직관적**이다.
-* **PEx v1**은 필드 경로를 `JSONPath`로 지정하고 별도의 필터 구조를 써야 하므로 **복잡하고 오류 가능성이 높다**.
-* 일반 개발자 또는 실무자 입장에서는 **DCQL의 접근성과 가독성이 더 우수**하다.
-* 반면, PEx v1은 **표준화된 schema 기반 검증과 재사용에 적합**한 장점도 있다.
+## 4.2.6 OID4VP VP Token
 
+VP Token은 Verifiable Presentation을 JWT 형식으로 인코딩한 토큰이며, Verifier에게 안전하고 표준화된 방식으로 VC(Verifiable Credential)를 제출할 수 있도록 한다. OID4VP에서는 JWT 기반의 일반 VP Token뿐만 아니라, OpenID Connect ID Token에 VP를 포함하는 방식(ID Token 기반)도 지원한다.
+
+### 4.2.6.1 JWT 기반 VP Token 데이터 예제 및 구성요소 설명
+
+JWT 기반 VP Token은 Presentation을 JWT의 payload로 인코딩한 구조를 가진다. 일반적으로 `vp` 클레임을 사용하여 Presentation을 담고, `nonce`와 `aud` 값을 통해 보안성을 확보한다.
+
+**예제:**
+
+```json
+{
+  "iss": "did:example:wallet",
+  "aud": "https://verifier.example.com",
+  "nonce": "n-0S6_WzA2Mj",
+  "exp": 1686403200,
+  "iat": 1686403100,
+  "vp": {
+    "@context": ["https://www.w3.org/2018/credentials/v1"],
+    "type": ["VerifiablePresentation"],
+    "verifiableCredential": [
+      "eyJhbGciOiJFZERTQSIsInR..."
+    ]
+  }
+}
+```
+
+**주요 구성요소 설명:**
+
+| 항목           | 설명                                              |
+| ------------ | ----------------------------------------------- |
+| `iss`        | Wallet의 DID 또는 발급 주체 식별자                        |
+| `aud`        | 요청을 보낸 Verifier의 식별자                            |
+| `nonce`      | 요청-응답의 연결성을 위한 임의값                              |
+| `vp`         | Verifiable Presentation 데이터 (JWT 또는 JSON-LD 형태) |
+| `exp`, `iat` | 토큰 유효기간 정보                                      |
+
+### 4.2.6.2 ID Token 기반의 VP Token 데이터 예제 및 구성요소 설명
+
+OID4VP는 ID Token을 확장하여 VP를 포함하는 방식도 허용한다. 이 방식은 특히 기존 OpenID Connect 인프라와의 통합을 고려한 설계이다.
+
+**예제:**
+
+```json
+{
+  "iss": "https://wallet.example.org",
+  "sub": "did:example:123456789",
+  "aud": "https://verifier.example.com",
+  "exp": 1686403200,
+  "iat": 1686403100,
+  "nonce": "n-0S6_WzA2Mj",
+  "vp_token": {
+    "presentation_submission": {
+      "id": "123456",
+      "definition_id": "cred-def-456",
+      "descriptor_map": [
+        {
+          "id": "email_cred",
+          "format": "jwt_vc",
+          "path": "$.vp.verifiableCredential[0]"
+        }
+      ]
+    },
+    "vp": {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      "type": ["VerifiablePresentation"],
+      "verifiableCredential": [
+        "eyJhbGciOiJFZERTQSIsInR..."
+      ]
+    }
+  }
+}
+```
+
+**주요 구성요소 설명:**
+
+| 항목                        | 설명                                          |
+| ------------------------- | ------------------------------------------- |
+| `sub`                     | Wallet 사용자의 식별자 (예: DID)                    |
+| `vp_token`               | VP Token을 포함하는 확장 클레임                       |
+| `presentation_submission` | 제출된 VC에 대한 매핑 정보 (Presentation Exchange 기반) |
+| `vp`                      | 제출된 Verifiable Presentation                 |
+
+### 4.2.6.3 일반 VP Token과 ID Token 기반 VP Token 비교
+
+| 구분       | 일반 VP Token      | ID Token 기반 VP Token             |
+| -------- | ---------------- | -------------------------------- |
+| 구조       | JWT 자체가 VP Token | ID Token의 확장 필드에 VP 포함           |
+| OIDC 호환성 | 낮음               | 높음 (SIOPv2 호환 가능)           |
+| 클레임 위치   | 최상위에 `vp` 클레임    | `vp_token` 확장 클레임 |
+| 사용 목적    | VP 제출 전용         | 로그인 및 VP 제출 통합                   |
+
+### 4.2.7 고려사항
+
+OID4VP(OpenID for Verifiable Presentation)를 구현하거나 운영할 때는 보안, 구현, 개인정보 보호 측면에서의 다양한 고려사항을 충실히 검토해야 한다. OID4VP는 Presentation 요청, 사용자 인증, Cross Device 흐름 등 복합적인 요소를 포함하고 있어 다음과 같은 항목들이 중요하다.
+
+#### 4.2.7.1 보안 고려사항 (Security Considerations)
+
+* **Nonce 및 aud 사용**: 요청의 위변조 방지를 위해 요청 객체에 포함된 `nonce`, `aud` 값은 필수적으로 검증해야 하며, 재사용 공격 방지 목적에 활용된다.
+* **요청 객체(request object)의 무결성**: JWT 서명된 요청 객체는 Verifier가 서명해야 하며, Wallet은 요청의 서명을 검증하고 신뢰할 수 있는 발신자인지 확인해야 한다.
+* **Presentation 서명 검증**: Verifiable Presentation 내 VC의 서명뿐 아니라 Presentation 자체의 서명도 검증하여 위변조를 방지해야 한다.
+* **Cross Device 공격 대응**: QR 기반 요청 시 중간자 공격 방지를 위한 endpoint URL 무결성 확인, secure channel 활용 등이 필요하다.
+
+#### 4.2.7.2 구현 고려사항 (Implementation Considerations)
+
+* **동적 요청 처리**: OID4VP는 요청 객체에 Verifier의 요구사항이 포함되므로 Wallet은 동적으로 해당 요청을 파싱하고 응답할 수 있어야 한다.
+* **동일 기기 / 교차 기기 흐름 대응**: 다양한 UX 시나리오(Cross Device, Same Device)에 대응할 수 있도록, 각각에 맞는 URI 스킴, 딥링크 처리, QR 스캔 로직 등이 필요하다.
+* **Presentation Submission 처리**: Verifier가 요청한 Descriptor Map에 따라 적절한 VC를 대응하여 제출하는 Presentation Exchange 구조를 구현해야 한다.
+* **메타데이터 처리**: Verifier 메타데이터를 통해 요청 형식, 요청 방식, 서명자 정보를 사전에 합의하고 관리할 수 있도록 해야 한다.
+
+#### 4.2.7.3 개인정보 보호 고려사항 (Privacy Considerations)
+
+* **최소 정보 제출 원칙**: Verifier가 요청한 claim만 포함되도록 Presentation을 구성해야 하며, Wallet은 이에 대한 UI/UX를 제공해야 한다.
+* **ZKP 및 Selective Disclosure**: 민감한 정보는 Zero-Knowledge Proof, BBS+ 등 프라이버시 강화 기술을 적용하여 제출하는 것이 바람직하다.
+* **사용자 동의 기반 처리**: 사용자가 어떤 VC와 claim을 어떤 Verifier에게 제공하는지 명확히 인식하고 동의할 수 있도록 안내 및 시각화가 필요하다.
+* **전송 후 저장 정책**: Verifier 측에서 수신한 VC/VP 데이터를 장기 보관하거나 로그에 저장할 경우, 법적·윤리적 문제가 발생할 수 있으므로 명확한 보관 정책이 수립되어야 한다.
 
 
 ### 4.3 SIOPv2
@@ -949,12 +1060,15 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 
 > **SIOPv2는 Self-Sovereign Identity 실현을 위한 핵심 구성요소로, 신뢰 가능한 자기주권형 인증을 구현함.**
 
-
-
-
 ## 5. OID4VC 적용 전략
 
-
+11
+11
+11
+11
+11
+11
+11
 
 
 ## 6. 부록
