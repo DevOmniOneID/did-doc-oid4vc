@@ -1,0 +1,26 @@
+@startuml
+title OID4VCI Authorization Code Flow
+
+actor "End-User"
+participant "Wallet"
+participant "Authorization Server"
+participant "Credential Issuer"
+
+note over "End-User", "Wallet" : (1a) End-User selects Credential
+
+"Credential Issuer" -> "Wallet": (1b) Credential Offer(credential type)
+"Wallet" -> "Credential Issuer": (2) Obtains Issuer's Credential Issuer metadata
+
+"Wallet" -> "Authorization Server": (3) Authorization Request(type(s) of Credentials to be issued)
+
+note over "Wallet", "Authorization Server": End-User Authentication / Consent
+
+"Authorization Server" -> "Wallet": (4) Authorization Response (code)
+
+"Wallet" -> "Authorization Server": (5) Token Request (code)
+"Authorization Server" -> "Wallet": Token Response (Access Token)
+
+"Wallet" -> "Credential Issuer": (6) Credential Request(Access Token, proof(s))
+"Credential Issuer" -> "Wallet": Credential Response with Credential(s) OR Transaction ID
+
+@enduml

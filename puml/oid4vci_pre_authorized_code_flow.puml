@@ -1,0 +1,21 @@
+@startuml
+title OID4VCI Pre-Authorized Code Flow
+
+actor "End-User"
+participant "Wallet"
+participant "Authorization Server"
+participant "Credential Issuer"
+
+"Wallet" -> "Credential Issuer": (1) End-User provides information required for the issuance of a certain Credential
+"Credential Issuer" -> "Wallet": (2) Credential Offer (Pre-Authorized Code)
+"Wallet" -> "Credential Issuer": (3) Obtains Issuer's Credential Issuer metadata
+
+"End-User" -> "Wallet": interacts
+
+"Wallet" -> "Authorization Server": (4) Token Request (Pre-Authorized Code, tx_code)
+"Authorization Server" -> "Wallet": Token Response (access_token)
+
+"Wallet" -> "Credential Issuer": (5) Credential Request (access_token, proof(s))
+"Credential Issuer" -> "Wallet": Credential Response (Credential(s))
+
+@enduml
