@@ -526,7 +526,7 @@ OID4VP는 사용자가 VC를 제시할 때, Verifier가 **누가 제시했는가
 
 
 #### 서비스 이용시 인증 흐름:
-![SIOP 시퀀스](./siop_service_flow.png)
+<img src="./siop_service_flow.png" alt="SIOP 시퀀스" width="70%">
 ![SIOP 시퀀스](./siop_detail_seq.svg)
 
 ---
