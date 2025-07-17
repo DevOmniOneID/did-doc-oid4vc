@@ -11,8 +11,8 @@ OID4VC 표준을 적용하기 위해 기존 시스템 구성에 **Authorization 
 - **Authorization Server (신규 개발)**: OAuth 2.0 기반의 인가/인증을 전담하는 서버. VC 발급 시 사용자의 동의를 얻고 Access Token을 발급하는 핵심 역할을 수행한다.
 - **did-issuer-server (기능 변경)**: OID4VCI 표준에 따라 VC를 발급하는 **Resource Server** 역할을 수행한다. AS가 발급한 Access Token을 검증하여 VC를 발급한다.
 - **did-verifier-server (기능 변경)**: OID4VP 표준에 따라 VP를 요청하고 검증하는 **Verifier** 역할을 수행한다.
-- **did-client-sdk-aos (기능 변경)**: 사용자의 Wallet으로서 OID4VCI의 **Client**, OID4VP의 **Prover**, SIOPv2의 **Self-Issued OpenID Provider** 역할을 모두 수행한다.
-- **did-ca-aos / did-ta-server (역할 유지)**: DID 발급 및 신뢰 검증을 위한 인프라로서, DID Resolution 과정에서 기존 역할을 그대로 유지한다.
+- **did-ca-aos / did-client-sdk-aos (기능 변경)**: 사용자의 Wallet으로서 OID4VCI의 **Client**, OID4VP의 **Prover**, SIOPv2의 **Self-Issued OpenID Provider** 역할을 모두 수행한다.
+- did-ta-server (역할 유지)**: DID 발급 및 신뢰 검증을 위한 인프라로서, DID Resolution 과정에서 기존 역할을 그대로 유지한다.
 
 ## 3. 신규 개발 요구사항
 
@@ -56,7 +56,7 @@ OID4VC 표준을 적용하기 위해 기존 시스템 구성에 **Authorization 
         - 수신된 VP Token의 서명, `nonce`, `aud` 등을 검증하고, 내부에 포함된 VP와 VC의 유효성을 검증하는 로직을 구현한다.
     - **Cross/Same Device Flow 지원:** QR 코드 생성, Custom App Scheme을 통한 딥링킹 등 다양한 사용자 환경을 지원하기 위한 로직이 필요하다.
 
-### 4.3. `did-client-sdk-aos` (Wallet) → OID4VC/SIOPv2 Client 역할로 변경
+### 4.3. `did-ca-aos` (CA) + `did-client-sdk-aos` (Wallet) → OID4VC/SIOPv2 Client 역할로 변경
 
 - **OID4VCI 클라이언트 기능:**
     - Credential Offer(`credential_offer` 또는 `credential_offer_uri`)를 해석하고, Issuer Metadata를 조회하여 발급 절차를 시작하는 기능을 구현한다.
