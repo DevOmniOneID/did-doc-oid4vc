@@ -531,7 +531,7 @@ OID4VCI는 Credential을 발급하는 Issuer가 고정된 서비스 주체이므
 | `state`         | CSRF 방지 및 요청 추적을 위한 값                 | 권장    |
 | `nonce`         | Presentation 재사용 방지를 위한 식별자           | 권장    |
 
-예시 redirect URI:
+**예시 redirect URI:**
 
 ```
 openid-vp://?client_id=https%3A%2F%2Fverifier.example.com%2Fcb
@@ -548,13 +548,13 @@ request\_uri는 Verifier가 사전에 생성한 Presentation 요청이 포함된
 
 `response_uri`는 명시적으로 응답을 받을 URL을 지정하는 값이며, `client_id`는 기본적으로 Wallet에 자신을 식별시키기 위한 값이다. 하지만 `response_uri`가 없는 경우 fallback으로 `client_id`를 사용할 수 있도록 되어 있다. 개발 시에는 `response_uri`를 명확히 지정하는 것이 바람직하다.
 
-요청:
+**요청:**
 
 ```
 GET https://verifier.example.com/request.jwt
 ```
 
-응답 예시:
+**응답 예시:**
 
 ```json
 {
