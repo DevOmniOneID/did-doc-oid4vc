@@ -526,8 +526,8 @@ OID4VP는 사용자가 VC를 제시할 때, Verifier가 **누가 제시했는가
 
 
 #### 서비스 이용시 인증 흐름:
-![SIOP 시퀀스](./siop_flow.png)
-![SIOP 시퀀스](./siop_seq.svg)
+![SIOP 시퀀스](./siop_service_flow.png)
+![SIOP 시퀀스](./siop_detail_seq.svg)
 
 ---
 
@@ -560,7 +560,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
     "x": "...",
     "y": "..."
   },
-  "vp_token": {VC, VP 포함 가능}  // 옵션
+  "vp_token": {VC발급 시, VP제출 시 데이터 포함 가능}  // VP 제출시 IDToken 활용한다면 VP데이터 포함
 }
 ```
 
@@ -576,7 +576,7 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 
 #### 시퀀스 다이어그램 (OID4VP 기준)
 
-![SIOP 시퀀스](./siop.svg)
+![SIOP 시퀀스](./siop_simple_seq.svg)
 
 #### 설명 요약:
 

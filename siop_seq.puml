@@ -1,0 +1,131 @@
+@startuml
+
+autonumber
+actor User
+box "Client Side" #LightBlue
+  participant "Wallet" as UserServer
+  participant "SIOP\nModule" as UserSIOP
+end box
+participant "Static Web" as StaticWeb
+box "Service(RP) Side" #LightCyan
+  participant "Verifier Backend Server" as RPServer
+  participant "SIOP\nModule" as RPSIOP
+  participant "DB" as RPDB
+  participant "Metadata Endpoint" as RPMeta
+end box
+
+
+
+== RP 측 초기 처리 ==
+
+User -> StaticWeb : 1. Access RP site
+note right of StaticWeb
+  사용자가 웹 페이지에서 로그인 버튼 클릭
+end note
+
+StaticWeb -> RPServer : 2. Sign-in request
+note right of RPServer
+  로그인 요청을 처리하고,
+  SIOP 요청 준비 단계로 진입
+end note
+
+RPServer -> RPSIOP : 3. Create SIOP Request URI & token\n(include `registration` field)
+note right of RPSIOP
+  SIOP Request 생성 시 다음 포함:
+  - client_id (RP callback URI)
+  - registration (RP의 클라이언트 정보)
+  - nonce, state 등
+end note
+
+RPSIOP -> RPServer : Return SIOP Request URI
+RPServer -> RPDB : 4. Store session ID, SIOP token, nonce
+note right of RPDB
+  나중에 응답을 검증하기 위한
+  nonce 및 상태 정보 저장
+end note
+
+RPServer -> StaticWeb : 5. Provide QR code (siop://...)
+note right of StaticWeb
+  사용자가 모바일 기기로 스캔할 수 있도록
+  SIOP Request URI를 QR 코드로 제공
+end note
+
+== 사용자 측 인증 요청 ==
+
+User -> StaticWeb : 6. Scan QR code
+note right of User
+  사용자가 모바일 기기로 QR 코드 스캔
+end note
+
+User -> UserServer : 7. POST SIOP Request URI
+note right of UserServer
+  SIOP 클라이언트가 백엔드에 URI 전달
+end note
+
+UserServer -> RPServer : 8. GET SIOP Request token
+note right of RPServer
+  요청 URI를 통해 SIOP 토큰 요청
+end note
+
+RPServer -> RPDB : 9. Retrieve SIOP token
+note right of RPDB
+  미리 저장된 요청 토큰 반환
+end note
+RPServer -> UserServer : Response token
+== RP Metadata 조회 및 검증 ==
+
+UserServer -> UserSIOP : 10. Validate SIOP Request token
+note right of UserSIOP
+  SIOP Request 유효성 검증:
+  - client_id 신뢰 여부 확인
+  - scope, nonce 확인 등
+end note
+
+UserSIOP -> RPMeta : 10a. Fetch RP Metadata (using `client_id`)
+note right of RPMeta
+  client_id가 URL인 경우:
+  /.well-known/openid-federation 또는
+  /.well-known/openid-configuration 등으로 조회
+end note
+
+RPSIOP -> RPMeta : 10b. Optionally resolve `registration` override
+note right of RPMeta
+  registration 필드 우선 사용하되,
+  필요 시 Metadata로 보완하거나 대체
+end note
+
+UserSIOP -> UserSIOP : 11. Create SIOP Response token
+note right of UserSIOP
+  ID Token 형태의 응답 생성:
+  - sub, iss, aud, nonce 등 포함
+  - 서명 포함 (예: ES256)
+end note
+
+UserSIOP -> UserServer : Return response token
+UserServer -> RPServer : 12. POST SIOP Response token to client_id URI
+note right of RPServer
+  RP가 응답을 수신하여 검증 준비
+end note
+
+== RP 측 응답 검증 및 완료 ==
+
+RPServer -> RPDB : 13. Retrieve nonce
+note right of RPDB
+  이전에 저장한 nonce 불러옴
+  - 재사용/위조 여부 확인 목적
+end note
+
+RPServer -> RPSIOP : 14. Validate SIOP Response token
+note right of RPSIOP
+  - 응답 서명 검증
+  - nonce, aud, iss 등 확인
+  - subject binding 및 presentation (선택)
+end note
+
+RPServer -> StaticWeb : 15. Sign-in response
+note right of StaticWeb
+  사용자 인증 완료 후 로그인 세션 발급
+  또는 토큰 저장 및 리다이렉션
+end note
+
+@enduml
