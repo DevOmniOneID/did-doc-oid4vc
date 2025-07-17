@@ -125,8 +125,6 @@ OID4VCI(OpenID for Verifiable Credential Issuance)는 OAuth 2.0 기반의 표준
 
 #### 4.1.1 OID4VCI 개요
 
-사용자가 목차 뎁스와 #의 개수를 맞추라고 했는데, 여기서 4.1.1은 4.1의 하위 항목이므로 ####이어야 한다. 그런데 ####로 되어 있다. 하지만 다시 확인해보니, 4.1.1은 ###으로 되어 있었다. 이것을 ####로 바꿔야 한다.
-
 ##### 4.1.1.1 OAuth 2.0 적용 범위
 
 OID4VCI는 VC 발급 과정을 OAuth 2.0의 흐름에 맞춰 모델링한다.
@@ -517,13 +515,13 @@ Content-Type: application/json
 
 ### 4.2 OID4VP
 
-OID4VP(OpenID for Verifiable Presentation)는 사용자가 보유한 Verifiable Credential을 안전하게 제출(Presentation)할 수 있도록 정의한 프로토콜이다.  
+OID4VP(OpenID for Verifiable Presentation)는 OpenID 프로토콜을 기반으로 사용자가 보유한 Verifiable Credential을 안전하게 제출(Presentation)할 수 있도록 정의한 규약이다.  
 Wallet은 사용자의 동의를 받아 Verifier가 요청한 Verifiable Presentation을 생성하고 제출하며, QR 코드 등을 통해 Cross Device 등 여러 시나리오를 지원한다.  
 이 표준은 OpenID Connect의 요청 객체(request object), nonce, JWT 등을 차용하여 보안성과 상호운용성을 확보한다.
 
 #### 4.2.1 OID4VP 개요
 
-OID4VP는 VP 제출 과정에서 OpenID Connect의 일부 개념을 활용하여 상호운용성과 보안 모델을 구성한다. OID4VP는 OpenID Connect의 구조적 요소들을 활용하지만, OAuth 2.0의 인증/인가 플로우와는 본질적으로 독립적이다.
+OID4VP는 VP 제출 과정에서 OpenID Connect의 일부 개념을 활용하여 상호운용성이 보장된 보안 모델을 구성한다. OID4VP는 OpenID Connect의 구조적 요소들을 활용하지만, OAuth 2.0의 인증/인가 플로우와는 본질적으로 독립적이다.
 
 - **Wallet**: Verifiable Credential을 보유하고, Verifier의 요청에 따라 Presentation을 생성하는 주체로서 OpenID의 Relying Party 또는 RP Client로 간주될 수 있음  
 - **사용자 (Holder / End-User)**: 자신의 VC 사용에 대한 동의를 제공하며, VP 생성 시 인증 또는 승인 절차에 참여하는 Resource Owner에 해당  
@@ -539,14 +537,14 @@ OID4VP는 두 가지 주요 제출 흐름(Credential Presentation Flow)을 지�
   Verifier는 Authorization Request를 QR 코드 등의 형태로 사용자에게 제공하며, 사용자는 이를 모바일 Wallet으로 스캔 등을 하여 VP를 생성하고 제출한다.  
   이 방식은 보안성과 사용자 편의성을 모두 고려하여, 웹 브라우저 기반 서비스와 모바일 지갑 간 상호작용이 가능하도록 설계되어 있다.
 
-  ![Cross_Device Flow](./images/oid4vp_cross_device_flow.svg)
+![Cross_Device Flow](./images/oid4vp_cross_device_flow.svg)
 
 - **Same Device Flow**:  
   사용자가 Verifier와 Wallet을 `동일한 디바이스(예: 모바일 브라우저 + Wallet 앱 또는 통합 앱)`에서 사용하는 방식이다.  
   일반적으로 앱 간 전환(deep-linking)이나 인앱 웹뷰 등을 통해 Authorization Request를 전달하고, 사용자는 인증 및 동의 후 직접 Wallet에서 VP를 생성하여 Verifier에 제출한다.  
   이 방식은 Cross Device에 비해 UX 흐름이 간단하며, 관련된 환경 구성이 가능하다면 사용자 경험이 향상될 수 있도록 설계되어 있다.
 
-  ![Same_Device Flow](./images/oid4vp_same_device_flow.svg)
+![Same_Device Flow](./images/oid4vp_same_device_flow.svg)
 
 #### 4.2.3 OID4VP Redirect 기반 요청-응답 구조
 
