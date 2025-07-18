@@ -31,7 +31,11 @@ OID4VC 표준을 적용하기 위해 기존 시스템 구성에 **Authorization 
 
 ## 4. 기존 오픈소스 변경 요구사항
 
-### 4.1. `did-issuer-server` → OID4VCI Issuer 역할로 변경
+### 4.1. `VC 발급 프로토콜에서` `TAS` 경유 → `Issuer 직접 접근` 혹은 `Proxy 서버 경유`로 분리
+- **Issuer 직접 접근:** OID4VCI Issuer 엔드포인트 구현 주체가 TAS가 될 수 없으므로, Issuer 직접 접근으로 구조 변경 필수.
+- **Proxy 서버 경유:** Issuer 직접 접근이 구조적으로 어려운 경우, Reverse Proxy 서버 등을 통한 Issuer 중개 가능.
+
+### 4.2. `did-issuer-server` → OID4VCI Issuer 역할로 변경
 
 - **엔드포인트 구현:** OID4VCI 표준에 따라 다음 엔드포인트를 구현해야 함.
     - `/.well-known/openid-credential-issuer` (GET): Issuer의 정책과 기술 사양(지원하는 VC 종류, 엔드포인트 주소, 암호화 방식 등)을 담은 **Issuer Metadata**를 제공함.
@@ -45,7 +49,7 @@ OID4VC 표준을 적용하기 위해 기존 시스템 구성에 **Authorization 
         - **Pre-authorized Code Flow:** 외부 채널을 통해 사전 인증된 `pre-authorized_code`를 이용해 즉시 토큰을 교환하고 VC를 발급하는 흐름을 지원함.
     - **Holder Binding:** VC 발급 요청의 `proof` 파라미터(JWT 형식)를 검증하여, VC가 정당한 소유자(Holder)에게 발급되는지 확인하는 로직을 구현해야 함.
 
-### 4.2. `did-verifier-server` → OID4VP Verifier 역할로 변경
+### 4.3. `did-verifier-server` → OID4VP Verifier 역할로 변경
 
 - **프로토콜 변경:** 기존의 독자적인 VP 제출 프로토콜을 OID4VP 표준으로 대체함.
     - **Presentation Request 생성:**
@@ -56,7 +60,7 @@ OID4VC 표준을 적용하기 위해 기존 시스템 구성에 **Authorization 
         - 수신된 VP Token의 서명, `nonce`, `aud` 등을 검증하고, 내부에 포함된 VP와 VC의 유효성을 검증하는 로직을 구현함.
     - **Cross/Same Device Flow 지원:** QR 코드 생성, Custom App Scheme을 통한 딥링킹 등 다양한 사용자 환경을 지원하기 위한 로직이 필요함.
 
-### 4.3. `did-ca-aos` (CA) + `did-client-sdk-aos` (Wallet) → OID4VC/SIOPv2 Client 역할로 변경
+### 4.4. `did-ca-aos` (CA) + `did-client-sdk-aos` (Wallet) → OID4VC/SIOPv2 Client 역할로 변경
 
 - **OID4VCI 클라이언트 기능:**
     - Credential Offer(`credential_offer` 또는 `credential_offer_uri`)를 해석하고, Issuer Metadata를 조회하여 발급 절차를 시작하는 기능을 구현함.
