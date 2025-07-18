@@ -1107,51 +1107,121 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 
 #### 6.1.1 JWT (JSON Web Token)
 
-- **정의**: 클레임(claim)을 JSON 형식으로 표현하여 전송하는 구조화된 토큰
-- **보안 적용**: JWS로 서명하거나, JWE로 암호화됨
-- **형식**: `header.payload.signature` (JWS 기반)
+- **정의**: JSON으로 표현된 일련의 클레임(Claim)을 안전하게 전달하는, URL-safe 문자열
+- **보안 적용**: JWS로 서명, JWE로 암호화 혹은 둘 다 가능. 즉, JWT 자체는 JWS/JWE 구조에 내포됨
+- **용도**: 액세스 토큰, 인증/권한, VC, VP 등
+- **형식**: header.payload.signature (JWS 기반)
 
   | 필드                  | 설명                                 |
   | -------------------- | ---------------------------------- |
-  | `header`             | 토큰 타입(`typ`)과 서명 알고리즘(`alg`) 정보 포함 |
-  | `payload`            | 클레임 정보, VC 등 실질 데이터 포함             |
-  | `signature`          | JWS 구조일 경우 서명값 포함 (alg에 따라 달라짐)    |
+  | `header`             | 토큰 타입(`typ`), 서명 알고리즘(`alg`), 키 식별자(kid) 등 |
+  | `payload`            | 클레임 정보(예: sub, name, iat, exp, VC 등 실제 데이터)           |
+  | `signature`          | JWS 구조일 때 서명 값, JWE인 경우엔 없음(대신 암호화 됨)    |
 
-- **용도**: 액세스 토큰, VP, VC에 사용될 수 있음
+- **예시**:
 
+  - **Header**
+    ``` json
+    { "alg":"HS256", "typ":"JWT" }
+
+    Base64url 인코딩:
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+    ```
+
+  - **Payload**
+    ``` json
+    { "sub":"1234567890", "name":"John Doe", "admin":true }
+    
+    Base64url 인코딩:
+    eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9
+    ```
+  - **Signature:** HMAC-SHA256(header + "." + payload + secret)를 계산
+    ```
+    SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+    ```
+  
+  - **JWT (최종 문자열) 예시**
+    ``` json
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.                                   //header
+    eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.   //Payload
+    SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c                             //Signature
+    ```
+  
 #### 6.1.2 JWS (JSON Web Signature)
 
-- **정의**: JSON 객체에 대해 디지털 서명(MAC 포함)을 적용해 무결성을 보장하는 구조
-- **형식**: `Base64Url(header).Base64Url(payload).Base64Url(signature)`
-- **header 주요 필드:**
+- **정의**: JSON 객체에 대해 디지털 서명(MAC 포함)을 적용해 무결성과 출처 인증을 보장하는 구조
+- **용도**: JWT 서명, VC/VP의 서명 보호
+- **형식**:
+  - **Compact Serialization:**
+  
+    `Base64Url(Protected Header).Base64Url(Payload).Base64Url(Signature)`
+    ```json
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.                                   // Header
+    eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.   // Payload
+    SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c                             // Signture
+    ```
+    
+  - **JSON Serialization:**  여러 서명, 헤더, recipient 지원
+    ```json
+    {
+      "payload": "...", "protected": "...", "header": {...}, "signature": "..."
+    }
+    ```
+- **주요 필드(header 포함):**
   
    | 필드    | 설명                                 |
    | ----- | ---------------------------------- |
-   | `alg` | 서명 알고리즘 (예: ES256, RS256)          |
-   | `typ` | 일반적으로 `JWT` 사용                     |
-   | `kid` | 사용된 키의 식별자 (JWK 또는 jwks_uri와 매칭됨) |
+   | `alg` | 서명 알고리즘 (예: HS256, RS256, ES256)          |
+   | `typ` | 토큰 타입 (일반적으로 `JWT` 사용)                     |
+   | `kid` | 키 식별자 (JWK/JWKS와 매칭) |
 
-- **용도**: JWT 서명, VC/VP의 서명 보호
+
 
 #### 6.1.3 JWE (JSON Web Encryption)
 
-- **정의**: JSON 객체를 암호화하여 기밀성을 보장하는 구조
-- **형식**: `protectedHeader.encryptedKey.iv.ciphertext.tag`
+- **정의**: JSON 데이터(혹은 임의 데이터)를 암호화하여 기밀성 및 무결성을 제공하는 구조
+- **용도**: 암호화된 VC 전달, enc_vc 등
+- **형식**:
+  - **Compact Serialization:**
+  
+    `Base64Url(Protected Header).Base64Url(Encrypted Key).Base64Url(IV).Base64Url(Ciphertext).Base64Url(Tag)`
+    ```json
+    eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ.   // ProtectedHeader
+    OKOawDo13gRp2ojaHV7LFpPqKSan.                     // encryptedKey
+    48V1_ALb6US04U3b.                                 // iv
+    5eym8TW_c8SuK0ltJ3rpYIzOAmRf.                     // ciphertext
+    XFBoMYUZodetZdvTiFvSkQ                            // tag
+    ```
+
+  - **JSON Serialization:** 복수 수신자(recipient), 추가 헤더 지원
+    ```json
+    {
+      "protected": "...",
+      "recipients": [
+          { "header": {...}, "encrypted_key": "..." }
+      ],
+      "iv": "...", "ciphertext": "...", "tag": "..."
+    }
+    ```
+
+- **주요 필드(header 포함):**
 
   | 필드                | 설명                                |
   | ----------------- | --------------------------------- |
-  | `protectedHeader` | 암호화 알고리즘(`alg`, `enc`) 및 `kid` 포함 |
-  | `encryptedKey`    | 콘텐츠 암호화 키(CEK)의 암호화 결과            |
+  | `protectedHeader` | 암호/키 관리 알고리즘(`alg`), 콘텐츠 암호화 알고리즘(`enc`), `kid` 등 포함 |
+  | `encryptedKey`    | CEK(Content Encryption Key)의 수신자(recipient)별 암호 결과          |
   | `iv`              | 초기화 벡터 (Initialization Vector)    |
-  | `ciphertext`      | 암호화된 페이로드                         |
+  | `ciphertext`      | 암호화된 데이터                         |
   | `tag`             | 무결성 검증을 위한 인증 태그 (AEAD에서 생성됨)     |
 
-- **용도**: 암호화된 VC 전달, enc_vc 등
 
 #### 6.1.4 JWK (JSON Web Key)
 
-- **정의**: 공개키 또는 비밀키를 JSON 형식으로 표현한 구조 (RFC 7517)
-- **용도**: JWS 서명 검증, JWE 암호화/복호화 키 공유 등
+- **정의:** 공개키, 비밀키 등 암호 키를 JSON 객체로 표현하는 데이터 구조 (단일/복수 모두 지원)
+- **용도:** JWS 서명 검증, JWE 암호화/복호화 키 공유 등
+- **형식:**
+  - **단일 키:** JSON 객체
+  - **키 집합:** `{ "keys": [ { ... }, ... ] }` 형식의 배열
 
 - **예시 구조 (ECDSA 키):**
 
@@ -1159,8 +1229,8 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
   {
     "kty": "EC",
     "crv": "P-256",
-    "x": "....",
-    "y": "....",
+    "x": "f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+    "y": "x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0",
     "use": "sig",
     "kid": "did:example:123#key-1"
   }
@@ -1170,12 +1240,9 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
   
     | 필드       | 설명                           |
     | -------- | ---------------------------- |
-    | `kty`    | 키 타입 (예: EC, RSA)            |
-    | `crv`    | 곡선 이름 (예: P-256)             |
-    | `x`, `y` | 공개키 좌표                       |
+    | `kty`    | 키 타입(예: EC, RSA) (필수)         |
+    | `crv`    | 곡선 이름(EC 키일 경우, 예: P-256)        |
+    | `x`, `y` | 공개키 좌표(EC 키일 경우)             |
+    | `n`, `e` | 공개키 지수(RSA일 경우)              |
     | `use`    | 키 용도 (`sig`: 서명, `enc`: 암호화) |
     | `kid`    | 키 식별자 (JWS/JWE의 `kid`와 매칭)   |
-
-##### 6.1.4.1 JWK Key 전달 및 검증
-
-> 내용이 준비 중입니다.
