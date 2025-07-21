@@ -46,10 +46,10 @@
      - 5.5 [결론](#55-결론)
 6. [부록](#6-부록)
    - 6.1 [개요](#61-개요)
-   - 6.1.1 [JWT (JSON Web Token)](#611-jwt-json-web-token)
-   - 6.1.2 [JWS (JSON Web Signature)](#612-jws-json-web-signature)
-   - 6.1.3 [JWE (JSON Web Encryption)](#613-jwe-json-web-encryption)
-   - 6.1.4 [JWK (JSON Web Key)](#614-jwk-json-web-key)
+     - 6.1.1 [JWT (JSON Web Token)](#611-jwt-json-web-token)
+     - 6.1.2 [JWS (JSON Web Signature)](#612-jws-json-web-signature)
+     - 6.1.3 [JWE (JSON Web Encryption)](#613-jwe-json-web-encryption)
+     - 6.1.4 [JWK (JSON Web Key)](#614-jwk-json-web-key)
 
 ## 1. 범위 및 목표
 
@@ -105,7 +105,7 @@ OID4VC 도입 및 적용을 통해 EUDIW(EU Digital Identity Wallet) 등 다양�
 목표 시스템 구성에 있어서 VC 발급 관점에서의 Context Diagram은 아래와 같은 상호 작용을 포함한다.
 
 - **A. Authorization Request** : Holder가 Resource Owner로서 발급에 동의하기 위해 Wallet이 Authorization Request를 보낸다. 일반적으로 Authorization Code Flow가 사용된다.
-- **B. Authorization Grant** : Hodler가 동의한 후 Authorization Server로부터 Authorization Code를 Wallet이 전달 받는다. 해당 절차에는 Authorization Server로의 로그인 과정 등이 포함된다. 여기서는 이후의 구체적인 흐름은 생략하였다.
+- **B. Authorization Grant** : Holder가 동의한 후 Authorization Server로부터 Authorization Code를 Wallet이 전달 받는다. 해당 절차에는 Authorization Server로의 로그인 과정 등이 포함된다. 여기서는 이후의 구체적인 흐름은 생략하였다.
 - **C. Authorization Grant 전달** : Wallet은 받은 Authorization Code를 Authorization Server에 전달하여 Access Token을 요청한다.
 - **D. Access Token 수신** : Authorization Server는 유효한 Authorization Code를 확인한 뒤 Access Token을 Wallet에 발급한다.
 - **E. Credential Request (Access Token 포함)** : Wallet은 Access Token을 포함하여 Issuer에게 Credential Request를 보낸다. 이때 요청은 OID4VCI 표준을 따른다.
