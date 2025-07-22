@@ -50,6 +50,7 @@
      - 6.1.2 [JWS (JSON Web Signature)](#612-jws-json-web-signature)
      - 6.1.3 [JWE (JSON Web Encryption)](#613-jwe-json-web-encryption)
      - 6.1.4 [JWK (JSON Web Key)](#614-jwk-json-web-key)
+   - 6.2 [OID4VCI 기반 encVC 발급 과정 예시 (ECDH 예시)](#62-oid4vci-기반-encvc-발급-과정-예시-ecdh-예시)
 
 ## 1. 범위 및 목표
 
@@ -1105,12 +1106,12 @@ SIOPv2에서 발급하는 ID Token은 다음과 같은 **JWT 구조**를 가진�
 OID4VC 적용 전략은 위의 OID4VC 분석 결과를 바탕으로, 기존 DID 시스템에 OID4VC 표준(OID4VCI, OID4VP, SIOPv2)을 적용하기 위한 구체적인 실행 방안과 전략을 기술한다. 목표로서 EUDI Wallet 등 글로벌 디지털 지갑과의 상호운용성을 확보하고, 개방형 표준을 준수하여 시스템을 고도화하는 등의 과제를 지닌다.
 
 ### 5.2 목표 시스템 아키텍처
-OID4VC 표준을 적용하기 위해 기존 시스템 구성에 **Authorization Server (AS)** 를 추가하고, 각 컴포넌트의 역할을 재정의해야 한다.
+OID4VC 표준을 적용하기 위해 기존 시스템 구성에 **Authorization Server (AS)**를 추가하고, 각 컴포넌트의 역할을 재정의해야 한다.
 - **Authorization Server (신규 개발)**: OAuth 2.0 기반의 인가/인증을 전담하는 서버. VC 발급 시 사용자의 동의를 얻고 Access Token을 발급하는 핵심 역할을 수행한다.
 - **did-issuer-server (기능 변경)**: OID4VCI 표준에 따라 VC를 발급하는 **Resource Server** 역할을 수행한다. AS가 발급한 Access Token을 검증하여 VC를 발급한다.
 - **did-verifier-server (기능 변경)**: OID4VP 표준에 따라 VP를 요청하고 검증하는 **Verifier** 역할을 수행한다.
 - **did-ca-aos / did-client-sdk-aos / did-ca-ios / did-client-sdk-ios (기능 변경)**: 사용자의 Wallet으로서 OID4VCI의 **Client**, OID4VP의 **Prover**, SIOPv2의 **Self-Issued OpenID Provider** 역할을 모두 수행한다.
-- **did-ta-server (역할 유지)**: DID 발급 및 신뢰 검증을 위한 인프라로서, DID Resolution 과정에서 기존 역할을 그대로 유지한다.
+- **did-ta-server (역할 유지)**: DID 발급 및 신뢰 검증을 위한 인프라로서, DID Resolution 과정에서 기존 역할을 그대로 유지한다. 단, **VC 발급 시 TAS를 경유하는 부분**은 프로토콜 변경이 필요하다.
 
 ### 5.3 신규 개발 요구사항
 
@@ -1379,3 +1380,444 @@ OID4VC 표준 적용은 단순한 프로토콜 변경을 넘어, 시스템 아�
     "kid": "did:example:123#key-1"
   }
   ```
+
+### 6.2 OID4VCI 기반 encVC 발급 과정 예시 (ECDH 예시)
+
+**전제 조건**
+```javascript
+// Access Token이 발급된 상태
+const accessToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...";
+const credentialIssuerUrl = "https://issuer.example.com";
+```
+
+#### 6.2.1 Credential Issuer Metadata 조회
+
+**API 호출: Wallet → Credential Issuer**
+```http
+GET /.well-known/openid-credential-issuer
+Host: issuer.example.com
+Accept: application/json
+```
+
+**응답 데이터**
+```json
+{
+  "credential_issuer": "https://issuer.example.com",
+  "credential_endpoint": "https://issuer.example.com/credential",
+  "authorization_servers": ["https://auth.example.com"],
+  "credential_configurations_supported": {
+    "UniversityDegreeCredential": {
+      "format": "jwt_vc_json",
+      "credential_definition": {
+        "type": ["VerifiableCredential", "UniversityDegreeCredential"],
+        "context": ["https://www.w3.org/2018/credentials/v1"]
+      },
+      "credential_response_encryption": {
+        "alg_values_supported": ["ECDH-ES", "ECDH-ES+A256KW"],
+        "enc_values_supported": ["A128GCM", "A256GCM"],
+        "encryption_required": true
+      },
+      "proof_types_supported": {
+        "jwt": {
+          "proof_signing_alg_values_supported": ["ES256", "RS256"]
+        }
+      },
+      "display": [
+        {
+          "name": "University Degree",
+          "locale": "en-US",
+          "logo": {
+            "url": "https://issuer.example.com/logo.png"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+#### 6.2.2 Wallet 서명용 임시 키 쌍 생성 및 JWK 변환
+
+**Wallet 내부 처리**
+```javascript
+// secp256r1 키 쌍 생성
+const keyPair = await crypto.subtle.generateKey(
+  { name: "ECDH", namedCurve: "P-256" },
+  true,
+  ["deriveKey"]
+);
+
+// 공개키를 JWK로 변환
+const publicJWK = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+const encryptionJWK = {
+  ...publicJWK,
+  alg: "ECDH-ES",
+  use: "enc",
+  kid: "wallet-enc-key-001"
+};
+```
+
+**생성된 JWK 예시**
+```json
+{
+  "kty": "EC",
+  "crv": "P-256",
+  "alg": "ECDH-ES",
+  "use": "enc",
+  "x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4", // JWK에서는 x, y가 필수
+  "y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM", // JWK에서는 x, y가 필수
+  "mb_key": "zDnaekGZTbQBerwcehBSXLqkUBvy6L73p1CJ92BZyK3TF",  // multibase 인코딩
+  "kid": "wallet-enc-key-001"
+}
+```
+
+#### 6.2.3 Proof JWT 생성
+
+**Wallet 내부 처리**
+```javascript
+// Proof JWT Header
+const proofHeader = {
+  "alg": "ES256",
+  "typ": "openid4vci-proof+jwt",
+  "jwk": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "wallet_signing_public_key_x",
+    "y": "wallet_signing_public_key_y",
+    "mb_key": "mb_key"
+  }
+};
+
+// Proof JWT Payload
+const proofPayload = {
+  "iss": "wallet-client-id",
+  "aud": "https://issuer.example.com",
+  "iat": 1641234567,
+  "nonce": "server_provided_c_nonce"  // 이전 요청에서 받은 c_nonce
+};
+
+// JWT 서명 생성
+const proofJWT = await signJWT(proofHeader, proofPayload, walletSigningPrivateKey);
+```
+
+**생성된 Proof JWT 예시**
+```
+eyJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiWEJfeWN0WkhOQUUzZVF2d0ktWDBybGQ1VUx6VVdVVDdHMkxJNUVzc2JVWSIsInkiOiJfMDJLeU9wVGIzZE9WN2pMdUt6ZzZWZklwVUQ0YlV1LUc1Um1nS0F5UmVvIn19.eyJpc3MiOiJ3YWxsZXQtY2xpZW50LWlkIiwiYXVkIjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS5jb20iLCJpYXQiOjE2NDEyMzQ1Njd9.signature
+```
+
+#### 6.2.4 Credential Request API 호출
+
+**API 호출: Wallet → Credential Issuer**
+```http
+POST /credential
+Host: issuer.example.com
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+Accept: application/jwt
+```
+
+**요청 데이터 (JWE 암호화 요청 포함)**
+```json
+{
+  "format": "jwt_vc_json",
+  "credential_definition": {
+    "type": ["VerifiableCredential", "UniversityDegreeCredential"],
+    "context": ["https://www.w3.org/2018/credentials/v1"]
+  },
+  "proof": {
+    "proof_type": "jwt",
+    "jwt": "eyJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiWEJfeWN0WkhOQUUzZVF2d0ktWDBybGQ1VUx6VVdVVDdHMkxJNUVzc2JVWSIsInkiOiJfMDJLeU9wVGIzZE9WN2pMdUt6ZzZWZklwVUQ0YlV1LUc1Um1nS0F5UmVvIn19.eyJpc3MiOiJ3YWxsZXQtY2xpZW50LWlkIiwiYXVkIjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS5jb20iLCJpYXQiOjE2NDEyMzQ1Njd9.signature"
+  },
+  "credential_response_encryption": {
+    "jwk": {
+      "kty": "EC",
+      "crv": "P-256",
+      "alg": "ECDH-ES",
+      "use": "enc",
+      "x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+      "y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
+      "mb_key": "zDnaekGZTbQBerwcehBSXLqkUBvy6L73p1CJ92BZyK3TF",
+      "kid": "wallet-enc-key-001"
+    },
+    "alg": "ECDH-ES",
+    "enc": "A256GCM"
+  }
+}
+```
+
+#### 6.2.5 Credential Issuer 내부 처리
+
+**서버 측 처리 로직**
+```javascript
+// 1. Access Token 검증
+const userInfo = await validateAccessToken(request.headers.authorization);
+
+// 2. Proof JWT 검증
+const proofJWT = request.body.proof.jwt;
+const proofPayload = await verifyProofJWT(proofJWT);
+
+// 3. Credential 생성
+const credential = await createCredential(userInfo, request.body.credential_definition);
+
+// 4. 암호화가 요청된 경우 JWE 생성
+if (request.body.credential_response_encryption) {
+  // 4-1. 임시 키 쌍 생성
+  const ephemeralKeyPair = await generateECDHKeyPair();
+  
+  // 4-2. ECDH 키 합의
+  const sharedSecret = await performECDH(
+    ephemeralKeyPair.privateKey,
+    request.body.credential_response_encryption.jwk
+  );
+  
+  // 4-3. CEK 파생
+  const cek = await deriveContentEncryptionKey(sharedSecret, "A256GCM");
+  
+  // 4-4. JWE 생성
+  const jwe = await createJWE(credentialResponse, cek, ephemeralKeyPair.publicKey);
+  
+  return jwe;
+}
+```
+
+#### 6.2.6 JWE Credential Response
+
+**HTTP 응답 전체 구조**
+
+**HTTP Response Headers (원문)**
+```http
+HTTP/1.1 200 OK
+Content-Type: application/jwt
+Cache-Control: no-store
+Pragma: no-cache
+Content-Length: 1547
+Date: Mon, 08 Jul 2024 12:34:56 GMT
+Server: OID4VCI-Issuer/1.0
+X-Request-ID: req-abc123
+```
+
+**HTTP Response Body (JWE 원문)**
+```
+eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOEdDTSIsImVwayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6ImlUbTZ6Rk9hT0pxSGtYNHo4N0hXaUVkX0hLQnZxNmNWYTlCcUlkVjU1NE0iLCJ5IjoiOXoyX1VDVUN4eXVxVElqQlZoQ3RNUWFnYktOaUF0N2x5a0pBNklPNnc4cyJ9fQ..xVNrS3ZQaXZQYklNTA.encrypted_credential_data_base64url_encoded_very_long_string_here_representing_the_actual_credential_and_metadata_that_has_been_encrypted_using_aes_gcm_with_the_derived_cek_from_ecdh_key_agreement.YuJKcPwD1BvS5fN8aK7uTg
+```
+
+**JWE 5개 부분 분석**
+
+**JWE 구조 분해**
+```javascript
+const jweResponse = "eyJhbGci...YuJKcPwD1BvS5fN8aK7uTg";
+const [protected, encryptedKey, iv, ciphertext, tag] = jweResponse.split('.');
+
+console.log("Protected Header:", protected);
+console.log("Encrypted Key:", encryptedKey);  
+console.log("IV:", iv);
+console.log("Ciphertext:", ciphertext);
+console.log("Tag:", tag);
+```
+
+**1) Protected Header**
+
+**원문 (Base64URL 인코딩)**
+```
+eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOEdDTSIsImVwayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6ImlUbTZ6Rk9hT0pxSGtYNHo4N0hXaUVkX0hLQnZxNmNWYTlCcUlkVjU1NE0iLCJ5IjoiOXoyX1VDVUN4eXVxVElqQlZoQ3RNUWFnYktOaUF0N2x5a0pBNklPNnc4cyJ9fQ
+```
+
+**복호화 후 (JSON)**
+```json
+{
+  "alg": "ECDH-ES",
+  "enc": "A256GCM",
+  "epk": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "iTm6zFOaOJqHkX4z87HWiEd_HKBvq6cVa9BqIdV554M",
+    "y": "9z2_UCUCxyuqTIjBVhCtMQagbKNiAt7lykJA6IO6w8s",
+    "mb_key": "zDnaekGZTbQBerwcehBSXLqkUBvy6L73p1CJ92BZyK3TF"
+  }
+}
+```
+
+**각 필드 의미**
+```javascript
+const headerExplained = {
+  "alg": "ECDH-ES",           // 키 합의 알고리즘
+  "enc": "A256GCM",           // 콘텐츠 암호화 알고리즘
+  "epk": {                    // Ephemeral Public Key (발급자 임시 공개키)
+    "kty": "EC",              // 키 타입: Elliptic Curve
+    "crv": "P-256",           // 곡선: secp256r1
+    "x": "iTm6zFOa...",       // 임시 공개키 x 좌표 (32바이트)
+    "y": "9z2_UCUCx..."       // 임시 공개키 y 좌표 (32바이트)
+    "mb_key": "zDnaekG..."    // 임시 공개키 Multibase 값
+  }
+};
+```
+
+**2) Encrypted Key**
+
+**원문 (빈 문자열)**
+```
+""
+```
+
+**의미**
+```javascript
+// ECDH-ES에서는 항상 빈 문자열
+// 이유: CEK가 ECDH 공유 비밀에서 직접 파생되므로 
+//      별도로 암호화된 키가 필요 없음
+
+if (algorithm === "ECDH-ES") {
+  encryptedKey = "";  // 항상 빈 값
+} else if (algorithm === "ECDH-ES+A256KW") {
+  encryptedKey = "wrapped_cek_base64url";  // AES Key Wrap 적용된 CEK
+}
+```
+
+**3) Initialization Vector (IV)**
+
+**원문 (Base64URL 인코딩)**
+```
+xVNrS3ZQaXZQYklNTA
+```
+
+**복호화 후 (12바이트 바이너리)**
+```javascript
+const ivBytes = base64urlDecode("xVNrS3ZQaXZQYklNTA");
+console.log("IV Length:", ivBytes.length);  // 12 (AES-GCM 표준)
+console.log("IV Hex:", bytesToHex(ivBytes)); // c5536b4b7650695062494d4c
+
+// AES-GCM에서 IV는 12바이트(96비트)가 표준
+// 랜덤하게 생성되며 각 암호화마다 고유해야 함
+```
+
+**IV 특징**
+```javascript
+const ivCharacteristics = {
+  length: 12,                    // AES-GCM 표준 길이
+  uniqueness: "매 암호화마다 고유",
+  generation: "암호학적 랜덤",
+  reuse: "절대 재사용 금지"
+};
+```
+
+**4) Ciphertext**
+
+**원문 (Base64URL 인코딩, 매우 긴 문자열)**
+```
+encrypted_credential_data_base64url_encoded_very_long_string_here_representing_the_actual_credential_and_metadata_that_has_been_encrypted_using_aes_gcm_with_the_derived_cek_from_ecdh_key_agreement
+```
+
+**복호화 과정**
+```javascript
+// 1. Base64URL 디코딩
+const ciphertextBytes = base64urlDecode(ciphertext);
+
+// 2. CEK 파생 (Wallet에서)
+const sharedSecret = ECDH(walletPrivateKey, issuerEphemeralPublicKey);
+const cek = ConcatKDF(sharedSecret, 16, "A256GCM");
+
+// 3. AES-GCM 복호화
+const decryptedBytes = AES_GCM_Decrypt(ciphertextBytes, cek, iv, tag);
+
+// 4. JSON 파싱
+const credentialResponse = JSON.parse(new TextDecoder().decode(decryptedBytes));
+```
+
+**복호화 후 내용 (Credential Response JSON)**
+```json
+{
+  "credential": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imlzc3Vlci1rZXktMDAxIn0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLmNvbSIsInN1YiI6ImRpZDpleGFtcGxlOjEyMyIsIm5iZiI6MTY0MTIzNDU2NywiZXhwIjoxNjcyNzcwNTY3LCJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVW5pdmVyc2l0eURlZ3JlZUNyZWRlbnRpYWwiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZXhhbXBsZToxMjMiLCJkZWdyZWUiOnsidHlwZSI6IkJhY2hlbG9yRGVncmVlIiwibmFtZSI6IkJhY2hlbG9yIG9mIFNjaWVuY2UgYW5kIEFydHMifX19fQ.signature",
+  "c_nonce": "tZignsnFbp",
+  "c_nonce_expires_in": 86400,
+  "notification_id": "credential_notification_12345"
+}
+```
+
+**5) Authentication Tag**
+
+**원문 (Base64URL 인코딩)**
+```
+YuJKcPwD1BvS5fN8aK7uTg
+```
+
+**복호화 후 (16바이트 바이너리)**
+```javascript
+const tagBytes = base64urlDecode("YuJKcPwD1BvS5fN8aK7uTg");
+console.log("Tag Length:", tagBytes.length);  // 16 (AES-GCM 표준)
+console.log("Tag Hex:", bytesToHex(tagBytes)); // 62e24a70fc03d41bd2e5f37c68aeee4e
+
+// AES-GCM Authentication Tag
+// - 암호화된 데이터의 무결성 보장
+// - 변조 감지 기능
+// - 복호화 시 검증 필수
+```
+
+**Tag 검증 과정**
+```javascript
+async function verifyAndDecrypt(ciphertext, cek, iv, tag) {
+  try {
+    // AES-GCM은 복호화 시 자동으로 tag 검증
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      cek,
+      concat(ciphertext, tag)  // ciphertext + tag 연결
+    );
+    return decrypted;  // 성공: 무결성 검증 완료
+  } catch (error) {
+    throw new Error("Tag verification failed - data tampered");
+  }
+}
+```
+
+**완전한 복호화 결과**
+
+**최종 Verifiable Credential (JWT 복호화)**
+```javascript
+// credential 필드의 JWT를 추가 파싱
+const credentialJWT = credentialResponse.credential;
+const [header, payload, signature] = credentialJWT.split('.');
+
+// JWT Header
+const jwtHeader = JSON.parse(base64urlDecode(header));
+console.log("JWT Header:", jwtHeader);
+
+// JWT Payload (실제 Verifiable Credential)
+const vcPayload = JSON.parse(base64urlDecode(payload));
+console.log("VC Payload:", vcPayload);
+```
+
+**JWT Header**
+```json
+{
+  "alg": "ES256",
+  "typ": "JWT", 
+  "kid": "issuer-key-001"
+}
+```
+
+**JWT Payload (실제 Verifiable Credential)**
+```json
+{
+  "iss": "https://issuer.example.com",
+  "sub": "did:example:123",
+  "nbf": 1641234567,
+  "exp": 1672770567,
+  "vc": {
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1"
+    ],
+    "type": [
+      "VerifiableCredential", 
+      "UniversityDegreeCredential"
+    ],
+    "credentialSubject": {
+      "id": "did:example:123",
+      "degree": {
+        "type": "BachelorDegree",
+        "name": "Bachelor of Science and Arts",
+        "university": "Example University",
+        "graduationDate": "2024-05-15"
+      }
+    }
+  }
+}
+```
